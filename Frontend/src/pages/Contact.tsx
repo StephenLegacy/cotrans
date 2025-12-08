@@ -30,7 +30,7 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email Us",
-    details: ["info@Cotransglobal.com", "careers@Cotransglobal.com"],
+    details: ["info@cotransglobal.com", "careers@Cotransglobal.com"],
   },
   {
     icon: Clock,

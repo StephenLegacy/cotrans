@@ -109,8 +109,8 @@ export function Footer() {
                 <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
                   <Mail className="w-5 h-5 text-secondary" />
                 </div>
-                <a href="mailto:info@Cotransglobal.com" className="text-primary-foreground/70 hover:text-secondary transition-colors text-sm">
-                  info@Cotransglobal.com
+                <a href="mailto:info@cotransglobal.com" className="text-primary-foreground/70 hover:text-secondary transition-colors text-sm">
+                  info@cotransglobal.com
                 </a>
               </li>
             </ul>

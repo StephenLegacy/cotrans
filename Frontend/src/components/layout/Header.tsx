@@ -50,11 +50,11 @@ export function Header() {
               <span className="hidden sm:inline">+971 50 123 4567</span>
             </a>
             <a
-              href="mailto:info@Cotransglobal.com"
+              href="mailto:info@cotransglobal.com"
               className="flex items-center gap-2 hover:text-secondary transition-colors"
             >
               <Mail className="w-4 h-4" />
-              <span className="hidden sm:inline">info@Cotransglobal.com</span>
+              <span className="hidden sm:inline">info@cotransglobal.com</span>
             </a>
           </div>
           <div className="flex items-center gap-4">
@@ -181,9 +181,9 @@ export function Header() {
                 <Phone className="w-4 h-4" />
                 +971 50 123 4567
               </a>
-              <a href="mailto:info@Cotransglobal.com" className="flex items-center gap-2 py-2">
+              <a href="mailto:info@cotransglobal.com" className="flex items-center gap-2 py-2">
                 <Mail className="w-4 h-4" />
-                info@Cotransglobal.com
+                info@cotransglobal.com
               </a>
             </div>
           </div>
