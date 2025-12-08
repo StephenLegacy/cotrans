@@ -67,7 +67,7 @@ export function Header() {
               </span>
             ))}
             <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-              <Phone className="w-400.5 h-3.5" />
+              <Phone className="w-1500.5 h-3.5" />
               <span className="font-bold">+971501234567</span>
             </span>
           </div>
@@ -79,8 +79,8 @@ export function Header() {
               </span>
             ))}
             <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-              <Phone className="w-400.5 h-3.5" />
-              <span className="font-bold">+971 50 123 4567</span>
+              <Phone className="w-1500.5 h-3.5" />
+              <span className="font-bold">+971501234567</span>
             </span>
           </div>
         </div>
