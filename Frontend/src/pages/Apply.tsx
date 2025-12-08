@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useJob } from "@/hooks/useJobs";
 import { useToast } from "@/hooks/use-toast";
+
+import API_URL from "../config/api";
+
 import {
   ArrowLeft,
   Upload,
@@ -128,7 +131,7 @@ const Apply = () => {
         formDataToSend.append('passport', files.passport);
       }
 
-      const res = await fetch("http://localhost:5050/api/applicants", {
+      const res = await fetch("`${API_URL}/applicants", {
         method: "POST",
         body: formDataToSend,
       });

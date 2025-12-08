@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import API_URL from "../config/api";
 import {
   MapPin,
   Phone,
@@ -61,7 +62,7 @@ const Contact = () => {
   setIsSubmitting(true);
 
   try {
-    const res = await fetch("http://localhost:5050/api/contact", {
+    const res = await fetch("`${API_URL}/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
