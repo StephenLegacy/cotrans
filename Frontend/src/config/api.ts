@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5050/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://cotransglobal.com/api";
 
 export const api = {
   jobs: `${API_BASE_URL}/jobs`,

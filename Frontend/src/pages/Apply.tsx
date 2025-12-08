@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useJob } from "@/hooks/useJobs";
 import { useToast } from "@/hooks/use-toast";
 
-import API_URL from "../config/api";
+import { api } from "../config/api";
 
 import {
   ArrowLeft,
@@ -131,7 +131,7 @@ const Apply = () => {
         formDataToSend.append('passport', files.passport);
       }
 
-      const res = await fetch("`${API_URL}/applicants", {
+      const res = await fetch(api.applicants, {
         method: "POST",
         body: formDataToSend,
       });
