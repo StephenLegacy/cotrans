@@ -16,7 +16,7 @@ export interface Job {
   benefits: string[];
   isActive: boolean;
   featured?: boolean;
-  deadline?: string; // ← Add this
+  deadline?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,7 +28,8 @@ interface UseJobsReturn {
   refetch: () => void;
 }
 
-const API_URL = 'http://localhost:5050/api/jobs';
+// Use environment variable for API
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useJobs = (filters?: {
   category?: string;
@@ -55,12 +56,12 @@ export const useJobs = (filters?: {
         params.append('search', filters.search);
       }
 
-      const url = params.toString() ? `${API_URL}?${params}` : API_URL;
+      const url = params.toString()
+        ? `${API_BASE_URL}/jobs?${params}`
+        : `${API_BASE_URL}/jobs`;
+
       const res = await fetch(url);
-      
-      if (!res.ok) {
-        throw new Error('Failed to fetch jobs');
-      }
+      if (!res.ok) throw new Error('Failed to fetch jobs');
 
       const data = await res.json();
       setJobs(data);
@@ -95,11 +96,8 @@ export const useJob = (id: string | undefined) => {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_URL}/${id}`); // ← Fixed syntax error
-        
-        if (!res.ok) {
-          throw new Error('Job not found');
-        }
+        const res = await fetch(`${API_BASE_URL}/jobs/${id}`);
+        if (!res.ok) throw new Error('Job not found');
 
         const data = await res.json();
         setJob(data);
