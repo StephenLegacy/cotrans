@@ -1,0 +1,53 @@
+# /etc/nginx/sites-available/gotendia
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    server_name gotendia.com www.gotendia.com;
+
+    # Correct SSL certs
+    ssl_certificate /etc/letsencrypt/live/gotendia.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/gotendia.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    client_max_body_size 50M;
+
+    location ~* ^/(blog_images|case_images|project_images|services_images|team_images|resumes|favicon\.png|vercel\.svg|next\.svg|file\.svg|globe\.svg|window\.svg) {
+        root /var/www/gotendia/public;
+        try_files $uri $uri/ =404;
+        access_log off;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location ~ /.well-known/acme-challenge {
+        allow all;
+    }
+
+    access_log /var/log/nginx/gotendia.access.log;
+    error_log  /var/log/nginx/gotendia.error.log warn;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name gotendia.com www.gotendia.com;
+
+    return 404;  # Let certbot manage HTTP validation
+}

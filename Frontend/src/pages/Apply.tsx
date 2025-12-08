@@ -128,7 +128,7 @@ const Apply = () => {
         formDataToSend.append('passport', files.passport);
       }
 
-      const res = await fetch("http://localhost:5000/api/applicants", {
+      const res = await fetch("http://localhost:5050/api/applicants", {
         method: "POST",
         body: formDataToSend,
       });

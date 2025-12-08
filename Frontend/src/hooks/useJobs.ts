@@ -28,7 +28,7 @@ interface UseJobsReturn {
   refetch: () => void;
 }
 
-const API_URL = 'http://localhost:5000/api/jobs';
+const API_URL = 'http://localhost:5050/api/jobs';
 
 export const useJobs = (filters?: {
   category?: string;

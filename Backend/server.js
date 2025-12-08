@@ -25,5 +25,5 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/applicants', applicantRoutes);
 app.use("/api/contact", contactRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

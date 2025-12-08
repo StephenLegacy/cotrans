@@ -1,0 +1,63 @@
+# /etc/nginx/sites-available/cotrans
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+
+    server_name cotransglobal.com www.cotransglobal.com;
+
+    # SSL managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/cotransglobal.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/cotransglobal.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    client_max_body_size 50M;
+
+    # FRONTEND ROOT (CHANGE THIS IF NEEDED)
+    root /var/www/cotrans/Frontend/dist;
+    index index.html;
+
+    # Frontend routes
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Backend API
+    location /api/ {
+        proxy_pass http://127.0.0.1:5050;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Static backend image folders
+    location ~* ^/(blog_images|case_images|project_images|services_images|team_images|resumes)/(.*)$ {
+        alias /var/www/cotrans/public/$1/$2;
+        try_files $uri =404;
+        access_log off;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+    }
+
+    # Certbot challenge
+    location ~ /.well-known/acme-challenge {
+        allow all;
+    }
+
+    access_log /var/log/nginx/cotrans.access.log;
+    error_log  /var/log/nginx/cotrans.error.log warn;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name cotransglobal.com www.cotransglobal.com;
+
+    return 301 https://$host$request_uri;
+}

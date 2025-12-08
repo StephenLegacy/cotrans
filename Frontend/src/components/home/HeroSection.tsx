@@ -48,7 +48,7 @@ export function HeroSection() {
             {/* Trust indicators */}
             <div className="flex flex-wrap gap-x-8 gap-y-4 pt-6 animate-slide-up stagger-4">
               {[
-                { icon: Users, text: "5000+ Placed" },
+                { icon: Users, text: "5050+ Placed" },
                 { icon: Briefcase, text: "500+ Partners" },
                 { icon: CheckCircle, text: "100% Verified" },
               ].map((item, i) => (
