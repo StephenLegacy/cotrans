@@ -50,15 +50,15 @@ const Jobs = () => {
 
   return (
     <Layout>
-      {/* Hero section */}
-      <section className="bg-gradient-hero text-primary-foreground py-16 relative overflow-hidden">
+      {/* Hero section - Added padding top to account for fixed header */}
+      <section className="bg-gradient-hero text-primary-foreground pt-32 pb-16 md:pt-40 md:pb-20 relative overflow-hidden">
         <div className="absolute inset-0 geometric-pattern opacity-20" />
         <div className="container-custom relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="font-display text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
               Find Your <span className="text-secondary">Dream Job</span> in UAE
             </h1>
-            <p className="text-primary-foreground/80 text-lg">
+            <p className="text-primary-foreground/80 text-lg animate-fade-in" style={{ animationDelay: '0.1s' }}>
               Browse verified job opportunities from top UAE employers. All positions include 
               accommodation and benefits.
             </p>
@@ -66,8 +66,8 @@ const Jobs = () => {
         </div>
       </section>
 
-      {/* Filters section */}
-      <section className="py-8 bg-muted/50 border-b border-border sticky top-16 md:top-[88px] z-40 backdrop-blur-sm">
+      {/* Filters section - Fixed with proper top spacing */}
+      <section className="py-6 bg-background/95 border-b border-border sticky top-16 md:top-20 z-40 backdrop-blur-md shadow-sm">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
@@ -77,13 +77,13 @@ const Jobs = () => {
                 placeholder="Search jobs by title, company, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 bg-background"
+                className="pl-10 h-12 bg-background border-border/50 focus:border-secondary transition-colors"
               />
             </div>
 
             {/* Category filter */}
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48 h-12 bg-background">
+              <SelectTrigger className="w-full md:w-48 h-12 bg-background border-border/50 focus:border-secondary transition-colors">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -97,7 +97,7 @@ const Jobs = () => {
 
             {/* Location filter */}
             <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-              <SelectTrigger className="w-full md:w-48 h-12 bg-background">
+              <SelectTrigger className="w-full md:w-48 h-12 bg-background border-border/50 focus:border-secondary transition-colors">
                 <SelectValue placeholder="Location" />
               </SelectTrigger>
               <SelectContent>
@@ -111,7 +111,11 @@ const Jobs = () => {
 
             {/* Clear filters */}
             {hasActiveFilters && (
-              <Button variant="outline" onClick={clearFilters} className="h-12 gap-2">
+              <Button 
+                variant="outline" 
+                onClick={clearFilters} 
+                className="h-12 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all"
+              >
                 <X className="w-4 h-4" />
                 Clear
               </Button>
@@ -145,7 +149,7 @@ const Jobs = () => {
           ) : (
             <>
               {/* Results count */}
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                 <p className="text-muted-foreground">
                   Showing <span className="font-semibold text-foreground">{jobs.length}</span>{" "}
                   {jobs.length === 1 ? "job" : "jobs"}
