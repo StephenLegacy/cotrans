@@ -1,0 +1,33 @@
+# backend/docker-compose.yml
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: cotrans-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: cotrans
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27018:27017"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cotrans-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongo
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+      - ./:/usr/src/app
+      - backend-node-modules:/usr/src/app/node_modules
+
+volumes:
+  mongo-data:
+  backend-node-modules:
