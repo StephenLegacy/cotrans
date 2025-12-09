@@ -131,9 +131,9 @@ export function Header() {
                     : "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
                 )}
               >
-                Cotrans Global
+                Cotrans Global Corporation
                 <span className="absolute inset-0 bg-gradient-to-r from-secondary to-secondary/50 bg-clip-text text-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  Cotrans Global
+                  Cotrans Global Corporation
                 </span>
               </span>
               <span
@@ -144,7 +144,7 @@ export function Header() {
                     : "text-gray-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]"
                 )}
               >
-                Your Gateway to UAE
+                Your Gateway to UAE Top Careers
               </span>
             </div>
           </Link>

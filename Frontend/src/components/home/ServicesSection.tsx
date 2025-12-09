@@ -43,7 +43,7 @@ export function ServicesSection() {
             What We Provide
           </span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Al Oula Recruitment Agency Provides
+            Cotrans Global Corporation Recruitment Agency Provides
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             We go beyond just finding you a job. Our comprehensive services ensure your 
