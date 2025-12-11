@@ -12,10 +12,10 @@ const navigation = [
 ];
 
 const marqueeContent = [
-  { icon: Sparkles, text: "10+ Premium Jobs Available Now" },
-  { icon: CheckCircle2, text: "100% Verified UAE Employers" },
-  { icon: TrendingUp, text: "Fast-Track Processing in 48hrs" },
-  { icon: Users, text: "Join 5,000+ Successful Placements" },
+  { icon: Sparkles, text: "15+ Premium Jobs Available Now" },
+  { icon: CheckCircle2, text: " 100% Verified UAE Employers" },
+  { icon: TrendingUp, text: " Fast-Track Processing In Just 48hrs" },
+  { icon: Users, text: " Join 8,000+ Successful Placements Today" },
 ];
 
 export function Header() {
@@ -68,7 +68,8 @@ export function Header() {
             ))}
             <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
               <Phone className="w-1500.5 h-3.5" />
-              <span className="font-bold">+971501234567</span>
+              <span className="font-bold">hello@cotransglobal.com</span> 
+              {/* the above is a phone number placeholder */}
             </span>
           </div>
           <div className="animate-marquee2 flex items-center gap-8 text-sm font-medium">
@@ -80,7 +81,7 @@ export function Header() {
             ))}
             <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
               <Phone className="w-1500.5 h-3.5" />
-              <span className="font-bold">+971501234567</span>
+              <span className="font-bold">Email: hello@cotransglobal.com</span>
             </span>
           </div>
         </div>
@@ -307,7 +308,7 @@ export function Header() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground">Email Us</span>
-                  <span className="font-semibold text-foreground">info@cotransglobal.com</span>
+                  <span className="font-semibold text-foreground">hello@cotransglobal.com</span>
                 </div>
               </a>
             </div>

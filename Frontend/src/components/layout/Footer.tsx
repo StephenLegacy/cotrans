@@ -218,12 +218,12 @@ export function Footer() {
             © {new Date().getFullYear()} Cotrans Global Corporation. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link to="/privacy" className="text-primary-foreground/50 hover:text-secondary transition-colors text-sm relative group/bottom">
+            <Link to="/privacy-policy" className="text-primary-foreground/50 hover:text-secondary transition-colors text-sm relative group/bottom">
               Privacy Policy
               <span className="absolute bottom-0 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover/bottom:w-full" />
               <span className="absolute bottom-0 left-0 w-0 h-px bg-secondary/50 blur-sm transition-all duration-300 group-hover/bottom:w-full" />
             </Link>
-            <Link to="/terms" className="text-primary-foreground/50 hover:text-secondary transition-colors text-sm relative group/bottom">
+            <Link to="/terms-of-service" className="text-primary-foreground/50 hover:text-secondary transition-colors text-sm relative group/bottom">
               Terms of Service
               <span className="absolute bottom-0 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover/bottom:w-full" />
               <span className="absolute bottom-0 left-0 w-0 h-px bg-secondary/50 blur-sm transition-all duration-300 group-hover/bottom:w-full" />
