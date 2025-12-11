@@ -26,7 +26,7 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Call Us",
-    details: ["+971 50 123 4567", "+971 4 123 4567"],
+    details: ["hello@cotransglobal.com", "+971 4 123 4567"],
   },
   {
     icon: Mail,

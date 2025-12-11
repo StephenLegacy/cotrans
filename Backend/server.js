@@ -28,7 +28,7 @@ connectDB()
   });
 
 // Health check / test route
-app.get('/', (req, res) => res.send('Al Oula Backend v2 is running'));
+app.get('/', (req, res) => res.send('Cotrans Global Corporation Backend v2 is running'));
 
 // API routes
 app.use('/api/auth', authRoutes);

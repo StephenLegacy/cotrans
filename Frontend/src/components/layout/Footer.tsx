@@ -191,7 +191,7 @@ export function Footer() {
                   <div className="absolute inset-0 border border-secondary/0 group-hover/item:border-secondary/30 rounded-lg scale-150 group-hover/item:scale-100 transition-all duration-500" />
                 </div>
                 <a href="tel:+971501234567" className="text-primary-foreground/70 hover:text-secondary transition-colors text-sm relative group/link">
-                  +971 50 123 4567
+                  hello@cotransglobal.com
                   <span className="absolute bottom-0 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover/link:w-full" />
                 </a>
               </li>

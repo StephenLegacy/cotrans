@@ -295,7 +295,7 @@ export function Header() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground">Call Us</span>
-                  <span className="font-semibold text-foreground">+971 50 123 4567</span>
+                  <span className="font-semibold text-foreground">hello@cotransglobal.com</span>
                 </div>
               </a>
               <a 

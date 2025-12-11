@@ -1,5 +1,5 @@
-# Al Oula Backend (v2)
-Minimal backend for Al Oula Recruitment Agency.
+# Cotrans Global Corporation Backend (v2)
+Minimal backend for Cotrans Global Corporation Recruitment Agency.
 
 Features:
 - Admin auth (register/login) - JWT

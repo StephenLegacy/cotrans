@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 const AdminSchema = new mongoose.Schema({
-  name: { type: String, default: 'Al Oula Admin' },
+  name: { type: String, default: 'Cotrans Global Corporation Admin' },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }
 },{ timestamps:true });
