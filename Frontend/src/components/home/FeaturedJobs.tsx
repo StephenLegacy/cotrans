@@ -1,11 +1,24 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/JobCard";
-import { mockJobs } from "@/data/mockJobs";
+import { useJobs, Job } from "@/hooks/useJobs";
 
 export function FeaturedJobs() {
-  const featuredJobs = mockJobs.filter((job) => job.featured).slice(0, 3);
+  const { jobs, loading, error } = useJobs(); // correct hook usage
+  const [featuredJobs, setFeaturedJobs] = useState<Job[]>([]);
+
+  // Filter featured jobs when jobs are fetched
+  useEffect(() => {
+    if (jobs && jobs.length > 0) {
+      const featured = jobs.filter((job) => job.featured).slice(0, 3);
+      setFeaturedJobs(featured);
+    }
+  }, [jobs]);
+
+  if (loading) return <p className="text-center">Loading featured jobs...</p>;
+  if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
     <section className="section-padding bg-muted/30">
@@ -19,20 +32,24 @@ export function FeaturedJobs() {
             Featured Job Openings
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore our top opportunities in the UAE. All positions are verified and come with 
+            Explore our top opportunities in the UAE. All positions are verified and come with
             comprehensive benefits packages.
           </p>
         </div>
 
         {/* Jobs grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          {featuredJobs.map((job, index) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              className={`animate-slide-up stagger-${index + 1}`}
-            />
-          ))}
+          {featuredJobs.length > 0 ? (
+            featuredJobs.map((job, index) => (
+              <JobCard
+                key={job._id}
+                job={job}
+                className={`animate-slide-up stagger-${index + 1}`}
+              />
+            ))
+          ) : (
+            <p className="text-center col-span-full">No featured jobs available at the moment.</p>
+          )}
         </div>
 
         {/* View all button */}

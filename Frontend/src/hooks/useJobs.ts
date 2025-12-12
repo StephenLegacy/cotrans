@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 
 export interface Job {
   _id: string;
+  slug: string; 
   title: string;
   company: string;
   location: string;
@@ -28,9 +29,10 @@ interface UseJobsReturn {
   refetch: () => void;
 }
 
-// Use environment variable for API
+// Base API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+// Hook to fetch all jobs
 export const useJobs = (filters?: {
   category?: string;
   location?: string;
@@ -80,13 +82,14 @@ export const useJobs = (filters?: {
   return { jobs, loading, error, refetch: fetchJobs };
 };
 
-export const useJob = (id: string | undefined) => {
+// Hook to fetch a single job by slug
+export const useJob = (slug?: string) => {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) {
+    if (!slug) {
       setLoading(false);
       return;
     }
@@ -96,7 +99,7 @@ export const useJob = (id: string | undefined) => {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_BASE_URL}/jobs/${id}`);
+        const res = await fetch(`${API_BASE_URL}/jobs/slug/${slug}`);
         if (!res.ok) throw new Error('Job not found');
 
         const data = await res.json();
@@ -110,7 +113,7 @@ export const useJob = (id: string | undefined) => {
     };
 
     fetchJob();
-  }, [id]);
+  }, [slug]);
 
   return { job, loading, error };
 };

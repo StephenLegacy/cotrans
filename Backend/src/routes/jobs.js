@@ -2,6 +2,7 @@ import express from 'express';
 import { 
   getJobs, 
   getJobById, 
+  getJobBySlug, 
   createJob, 
   updateJob, 
   deleteJob,
@@ -16,6 +17,9 @@ const router = express.Router();
 router.get('/', getJobs);
 router.get('/categories', getCategories);
 router.get('/locations', getLocations);
+
+// ⚠️ Make sure slug route comes BEFORE :id route
+router.get('/slug/:slug', getJobBySlug);
 router.get('/:id', getJobById);
 
 // Protected routes (Admin only)

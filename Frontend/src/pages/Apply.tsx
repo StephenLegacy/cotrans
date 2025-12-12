@@ -203,7 +203,7 @@ const Apply = () => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-[100px]" />
         <div className="container-custom relative z-10">
           <Link
-            to={`/jobs/${job._id}`}
+            to={`/jobs/${job.slug}`}
             className="inline-flex items-center gap-2 text-primary-foreground/70 hover:text-primary-foreground transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />

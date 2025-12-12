@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
+import slugify from 'slugify';
 
 const JobSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  company: { type: String, default: 'Contrans Global' },
+  company: { type: String, default: 'Cotrans Global Corporation' },
   description: String,
   location: { type: String, default: 'UAE' },
   salary: String,
@@ -28,6 +29,7 @@ const JobSchema = new mongoose.Schema({
     type: Boolean, 
     default: false 
   },
+  slug: { type: String, unique: true, index: true },
   deadline: { 
     type: Date 
   },
@@ -35,6 +37,15 @@ const JobSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
   applicantsCount: { type: Number, default: 0 }
 }, { timestamps: true });
+
+// Pre-save hook to generate slug from title
+JobSchema.pre("save", function(next) {
+  if (this.title && !this.slug) {
+    this.slug = slugify(this.title, { lower: true, strict: true });
+  }
+  next();
+});
+
 
 // Index for faster queries
 JobSchema.index({ category: 1, isActive: 1 });

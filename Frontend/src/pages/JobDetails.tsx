@@ -32,6 +32,7 @@ const agencyProvides = [
 ];
 
 const JobDetails = () => {
+  const { slug } = useParams<{ slug: string }>();
   const { id } = useParams<{ id: string }>();
   const { job, loading, error } = useJob(id);
 
