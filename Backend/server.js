@@ -7,6 +7,7 @@ import jobRoutes from './src/routes/jobs.js';
 import applicantRoutes from './src/routes/applicantRoutes.js';
 import fileUpload from 'express-fileupload';
 import contactRoutes from './src/routes/contactRoutes.js';
+import resendWebhook from "./src/routes/resendWebhook.js";
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +19,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
+app.use("/webhooks", resendWebhook);
 
 // Connect to MongoDB
 connectDB()
@@ -44,4 +46,4 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5050;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Senior Dev StephenLegacy, The Server is running on port ${PORT}`));

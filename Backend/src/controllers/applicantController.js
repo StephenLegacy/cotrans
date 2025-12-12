@@ -1,61 +1,63 @@
-import Applicant from '../models/Applicant.js';
-import Job from '../models/Job.js';
-import nodemailer from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
+// APPLY TO JOB CONTROLLER USING RESEND ONLY
+import Applicant from "../models/Applicant.js";
+import Job from "../models/Job.js";
+import { Resend } from "resend";
+import fs from "fs";
+import path from "path";
 
-// Helper to load email templates
+import dotenv from "dotenv";
+dotenv.config();
+
+// -----------------------------
+// INIT RESEND
+// -----------------------------
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+if (!process.env.RESEND_API_KEY) {
+  console.error("❌ Missing RESEND_API_KEY");
+}
+
+// -----------------------------
+// TEMPLATE LOADER
+// -----------------------------
 const loadTemplate = (filename, variables) => {
-  const templatePath = path.join(process.cwd(), "src/emails", filename);
-  
-  if (!fs.existsSync(templatePath)) {
-    console.warn(`Template file not found: ${filename}, using fallback`);
+  try {
+    const filePath = path.join(process.cwd(), "src/emails", filename);
+    let template = fs.readFileSync(filePath, "utf8");
+
+    for (const key in variables) {
+      template = template.replace(new RegExp(`{{${key}}}`, "g"), variables[key]);
+    }
+    return template;
+  } catch (err) {
+    console.warn(`⚠ Template not found: ${filename}, falling back to text`);
     return null;
   }
-  
-  let template = fs.readFileSync(templatePath, "utf8");
-  for (const key in variables) {
-    template = template.replace(new RegExp(`{{${key}}}`, "g"), variables[key]);
-  }
-  return template;
 };
 
-// Create transporter
-const createTransporter = () => {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    throw new Error("SMTP configuration missing in environment variables");
+// -----------------------------
+// SEND EMAIL USING RESEND
+// -----------------------------
+const sendEmail = async ({ to, subject, html, text, attachments }) => {
+  try {
+    const response = await resend.emails.send({
+      from: process.env.FROM_EMAIL,
+      to,
+      subject,
+      html,
+      text,
+      attachments,
+    });
+
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+
+    return response;
+  } catch (err) {
+    console.error("❌ EMAIL SEND ERROR:", err.message);
+    throw err;
   }
-
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_PORT === "465",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-  });
-};
-
-// Send email with better error handling
-const sendEmail = async (options) => {
-  const transporter = createTransporter();
-  
-  // Verify connection
-  await transporter.verify();
-  
-  const result = await transporter.sendMail({
-    from: process.env.FROM_EMAIL,
-    ...options,
-  });
-
-  if (!result.accepted || result.accepted.length === 0) {
-    throw new Error(`Email to ${options.to} was rejected by server`);
-  }
-
-  return result;
 };
 
 export const applyToJob = async (req, res) => {
