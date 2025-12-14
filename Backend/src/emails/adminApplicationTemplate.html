@@ -314,10 +314,14 @@
                 <tr>
                   <td>
                     <p style="margin: 0 0 8px; color: #64748b; font-size: 12px;">
-                      This is an automated notification from the Contrans Global recruitment system.
+                      This is an automated notification from the Contrans Global Corporation recruitment system.
                     </p>
                     <p style="margin: 0; color: #94a3b8; font-size: 11px;">
-                      © 2024 Contrans Global Recruitment Agency | Admin Notification System
+                      © <span id="year"></span> Contrans Global Recruitment Agency | Admin Notification System
+
+                        <script>
+                            document.getElementById("year").textContent = new Date().getFullYear();
+                        </script>
                     </p>
                   </td>
                 </tr>

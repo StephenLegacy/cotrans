@@ -73,10 +73,10 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               {[
-                { Icon: Facebook, href: "#", label: "Facebook" },
-                { Icon: Instagram, href: "#", label: "Instagram" },
-                { Icon: Linkedin, href: "#", label: "LinkedIn" },
-                { Icon: Twitter, href: "#", label: "Twitter" }
+                // { Icon: Facebook, href: "#", label: "Facebook" },
+                { Icon: Instagram, href: "https://www.instagram.com/cotrans_global/", label: "Instagram" },
+                { Icon: Linkedin, href: "https://www.linkedin.com/in/cotrans-global/", label: "LinkedIn" },
+                { Icon: Twitter, href: "https://x.com/cotrans_global", label: "Twitter" }
               ].map(({ Icon, href, label }, index) => (
                 <a
                   key={index}
@@ -94,6 +94,7 @@ export function Footer() {
               ))}
             </div>
           </div>
+
 
           {/* Quick Links */}
           <div className="group/section">
@@ -201,8 +202,8 @@ export function Footer() {
                   <Mail className="w-5 h-5 text-secondary transition-all duration-300 group-hover/item:scale-110 relative z-10" />
                   <div className="absolute inset-0 border border-secondary/0 group-hover/item:border-secondary/30 rounded-lg scale-150 group-hover/item:scale-100 transition-all duration-500" />
                 </div>
-                <a href="mailto:info@cotransglobal.com" className="text-primary-foreground/70 hover:text-secondary transition-colors text-sm relative group/link">
-                  info@cotransglobal.com
+                <a href="mailto:hello@cotransglobal.com" className="text-primary-foreground/70 hover:text-secondary transition-colors text-sm relative group/link">
+                  hello@cotransglobal.com
                   <span className="absolute bottom-0 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover/link:w-full" />
                 </a>
               </li>
