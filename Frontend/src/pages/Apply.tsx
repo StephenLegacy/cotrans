@@ -28,6 +28,7 @@ import {
   HeadphonesIcon,
   Sparkles,
   Loader2,
+  Camera,
 } from "lucide-react";
 
 const agencyProvides = [
@@ -60,10 +61,14 @@ const Apply = () => {
   const [files, setFiles] = useState<{
     resume: File | null;
     passport: File | null;
+    passportPhoto: File | null;
   }>({
     resume: null,
     passport: null,
+    passportPhoto: null,
   });
+
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   // Loading state
   if (loading) {
@@ -95,10 +100,19 @@ const Apply = () => {
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "resume" | "passport"
+    type: "resume" | "passport" | "passportPhoto"
   ) => {
     const file = e.target.files?.[0] || null;
     setFiles((prev) => ({ ...prev, [type]: file }));
+
+    // Create preview for passport photo
+    if (type === "passportPhoto" && file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,6 +144,9 @@ const Apply = () => {
       if (files.passport) {
         formDataToSend.append('passport', files.passport);
       }
+      if (files.passportPhoto) {
+        formDataToSend.append('passportPhoto', files.passportPhoto);
+      }
 
       const res = await fetch(api.applicants, {
         method: "POST",
@@ -141,7 +158,7 @@ const Apply = () => {
       if (res.ok && data.success) {
         toast({
           title: "Application Submitted!",
-          description: "Thank you for applying. You will receive a confirmation email shortly.",
+          description: "Thank you for applying. You will receive a confirmation email with a PDF copy of your application.",
         });
         setSubmitted(true);
       } else {
@@ -178,7 +195,7 @@ const Apply = () => {
               <p className="text-muted-foreground text-lg mb-8 animate-slide-up stagger-2">
                 Thank you for applying for the <strong className="text-foreground">{job.title}</strong> position. 
                 We have received your application and will review it shortly. 
-                You will receive a confirmation email with further details.
+                Check your email for a confirmation with a PDF copy of your application.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up stagger-3">
                 <Button variant="gold" asChild className="shadow-gold">
@@ -297,6 +314,18 @@ const Apply = () => {
                         />
                       </div>
                     </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="nationality">Nationality *</Label>
+                      <Input
+                        id="nationality"
+                        name="nationality"
+                        value={formData.nationality}
+                        onChange={handleInputChange}
+                        placeholder="Enter your nationality"
+                        className="h-12 rounded-xl"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -358,65 +387,119 @@ const Apply = () => {
                     </div>
                     Document Upload
                   </h2>
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                    {/* Passport Photo */}
                     <div className="space-y-2">
-                      <Label htmlFor="resume">Resume/CV *</Label>
-                      <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all cursor-pointer group">
-                        <input
-                          id="resume"
-                          type="file"
-                          accept=".pdf,.doc,.docx"
-                          onChange={(e) => handleFileChange(e, "resume")}
-                          className="hidden"
-                          required
-                        />
-                        <label htmlFor="resume" className="cursor-pointer">
-                          <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3 group-hover:text-secondary transition-colors" />
-                          {files.resume ? (
-                            <p className="text-sm text-foreground font-medium">
-                              {files.resume.name}
-                            </p>
-                          ) : (
-                            <>
-                              <p className="text-sm text-muted-foreground">
-                                Click to upload resume
+                      <Label htmlFor="passportPhoto">Passport Photo *</Label>
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all cursor-pointer group flex-1">
+                          <input
+                            id="passportPhoto"
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png"
+                            onChange={(e) => handleFileChange(e, "passportPhoto")}
+                            className="hidden"
+                            required
+                          />
+                          <label htmlFor="passportPhoto" className="cursor-pointer">
+                            <Camera className="w-10 h-10 text-muted-foreground mx-auto mb-3 group-hover:text-secondary transition-colors" />
+                            {files.passportPhoto ? (
+                              <p className="text-sm text-foreground font-medium">
+                                {files.passportPhoto.name}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                PDF, DOC, DOCX (Max 5MB)
-                              </p>
-                            </>
-                          )}
-                        </label>
+                            ) : (
+                              <>
+                                <p className="text-sm text-muted-foreground">
+                                  Click to upload photo
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  JPG, PNG (Max 5MB)
+                                </p>
+                              </>
+                            )}
+                          </label>
+                        </div>
+                        {photoPreview && (
+                          <div className="flex items-center justify-center">
+                            <div className="relative w-32 h-40 rounded-xl overflow-hidden border-2 border-secondary">
+                              <img
+                                src={photoPreview}
+                                alt="Passport photo preview"
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-secondary/90 text-primary-foreground text-xs py-1 text-center">
+                                Preview
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Upload a recent passport-sized photograph with a clear view of your face
+                      </p>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="passport">Passport Copy *</Label>
-                      <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all cursor-pointer group">
-                        <input
-                          id="passport"
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={(e) => handleFileChange(e, "passport")}
-                          className="hidden"
-                          required
-                        />
-                        <label htmlFor="passport" className="cursor-pointer">
-                          <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3 group-hover:text-secondary transition-colors" />
-                          {files.passport ? (
-                            <p className="text-sm text-foreground font-medium">
-                              {files.passport.name}
-                            </p>
-                          ) : (
-                            <>
-                              <p className="text-sm text-muted-foreground">
-                                Click to upload passport
+
+                    {/* Resume and Passport Documents */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="resume">Resume/CV *</Label>
+                        <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all cursor-pointer group">
+                          <input
+                            id="resume"
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={(e) => handleFileChange(e, "resume")}
+                            className="hidden"
+                            required
+                          />
+                          <label htmlFor="resume" className="cursor-pointer">
+                            <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3 group-hover:text-secondary transition-colors" />
+                            {files.resume ? (
+                              <p className="text-sm text-foreground font-medium">
+                                {files.resume.name}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                PDF, JPG, PNG (Max 5MB)
+                            ) : (
+                              <>
+                                <p className="text-sm text-muted-foreground">
+                                  Click to upload resume
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  PDF, DOC, DOCX (Max 5MB)
+                                </p>
+                              </>
+                            )}
+                          </label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="passport">Passport Copy *</Label>
+                        <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all cursor-pointer group">
+                          <input
+                            id="passport"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange(e, "passport")}
+                            className="hidden"
+                            required
+                          />
+                          <label htmlFor="passport" className="cursor-pointer">
+                            <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3 group-hover:text-secondary transition-colors" />
+                            {files.passport ? (
+                              <p className="text-sm text-foreground font-medium">
+                                {files.passport.name}
                               </p>
-                            </>
-                          )}
-                        </label>
+                            ) : (
+                              <>
+                                <p className="text-sm text-muted-foreground">
+                                  Click to upload passport
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  PDF, JPG, PNG (Max 5MB)
+                                </p>
+                              </>
+                            )}
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -431,10 +514,17 @@ const Apply = () => {
                     className="flex-1 rounded-xl shadow-gold"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Submitting..." : "Submit Application"}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit Application"
+                    )}
                   </Button>
                   <Button type="button" variant="outline" size="xl" asChild className="rounded-xl">
-                    <Link to={`/jobs/${job._id}`}>Cancel</Link>
+                    <Link to={`/jobs/${job.slug}`}>Cancel</Link>
                   </Button>
                 </div>
               </form>
