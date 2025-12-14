@@ -8,6 +8,10 @@ const ApplicantSchema = new mongoose.Schema({
   nationality: String,
   experience: String,
   cvName: String,
+  pdfPath: {
+  type: String,
+  default: null
+  },
   appliedAt: { type: Date, default: Date.now },
   status: { type: String, enum: ['applied','shortlisted','rejected'], default: 'applied' },
   medicalFeePaid: { type: Boolean, default: false },
