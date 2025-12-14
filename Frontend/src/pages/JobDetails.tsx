@@ -1,4 +1,4 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { MedicalNotice } from "@/components/home/MedicalNotice";
 import { Button } from "@/components/ui/button";
@@ -32,22 +32,38 @@ const agencyProvides = [
 ];
 
 const JobDetails = () => {
-  const { slug } = useParams<{ slug: string }>();
-  const { id } = useParams<{ id: string }>();
-  const { job, loading, error } = useJob(id);
+  const { slug, id } = useParams<{ slug?: string; id?: string }>();
+  const navigate = useNavigate();
+  
+  // Use whichever parameter is available (slug or id)
+  const jobIdentifier = id || slug;
+  
+  const { job, loading, error } = useJob(jobIdentifier);
+
+  // Handle apply button click
+  const handleApply = () => {
+    if (!job) return;
+    
+    // Option 1: Navigate to application page with job ID
+    navigate(`/apply/${job.slug || job.slug || jobIdentifier}`);
+    
+    // Option 2: Navigate to application page with job data in state
+    // navigate('/apply', { state: { job } });
+    
+    // Option 3: Scroll to application form on same page (if you have one)
+    // document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Loading state
   if (loading) {
     return (
       <Layout>
-        <section className="section-padding bg-background pt-32">
-          <div className="container-custom">
-            <div className="max-w-2xl mx-auto text-center">
-              <Loader2 className="w-12 h-12 text-secondary animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading job details...</p>
-            </div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-gray-600">Loading job details...</p>
           </div>
-        </section>
+        </div>
       </Layout>
     );
   }
@@ -67,210 +83,192 @@ const JobDetails = () => {
 
   return (
     <Layout>
-      {/* Breadcrumb */}
-      <section className="bg-muted/30 py-4 border-b border-border pt-24">
-        <div className="container-custom">
-          <div className="flex items-center gap-2 text-sm">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              Home
-            </Link>
-            <span className="text-muted-foreground">/</span>
-            <Link to="/jobs" className="text-muted-foreground hover:text-foreground transition-colors">
-              Jobs
-            </Link>
-            <span className="text-muted-foreground">/</span>
-            <span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-none">{job.title}</span>
-          </div>
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Breadcrumb */}
+        <div className="text-sm text-gray-600 mb-6">
+          <Link to="/" className="hover:text-primary">
+            Home
+          </Link>
+          {" / "}
+          <Link to="/jobs" className="hover:text-primary">
+            Jobs
+          </Link>
+          {" / "}
+          {job.title}
         </div>
-      </section>
 
-      {/* Job header */}
-      <section className="bg-gradient-hero text-primary-foreground py-12 lg:py-16 relative overflow-hidden">
-        <div className="absolute inset-0 geometric-pattern opacity-20" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-[100px]" />
-        <div className="container-custom relative z-10">
+        {/* Job header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <Link
             to="/jobs"
-            className="inline-flex items-center gap-2 text-primary-foreground/70 hover:text-primary-foreground transition-colors mb-6"
+            className="inline-flex items-center text-primary hover:underline mb-4"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Jobs
           </Link>
 
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 lg:gap-12">
-            <div className="animate-slide-up">
-              <div className="flex flex-wrap gap-2 mb-4">
-                <Badge className="bg-secondary/20 text-secondary border-secondary/30 rounded-lg">
-                  {job.category}
-                </Badge>
-                {job.isActive && (
-                  <Badge className="bg-secondary text-secondary-foreground rounded-lg">Active</Badge>
-                )}
-              </div>
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-3">{job.title}</h1>
-              <p className="text-xl text-primary-foreground/80">{job.company}</p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Badge variant="secondary">{job.category}</Badge>
+            {job.isActive && (
+              <Badge variant="default" className="bg-green-500">
+                Active
+              </Badge>
+            )}
+          </div>
 
-              <div className="flex flex-wrap gap-4 lg:gap-6 mt-6 text-primary-foreground/70">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-secondary" />
-                  {job.location}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-secondary" />
-                  {job.employmentType}
-                </div>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-secondary" />
-                  {job.salary}
-                </div>
-              </div>
+          <h1 className="text-3xl font-bold mb-2">{job.title}</h1>
+          <p className="text-xl text-gray-700 mb-4">{job.company}</p>
+
+          <div className="flex flex-wrap gap-4 text-gray-600 mb-6">
+            <div className="flex items-center">
+              <MapPin className="w-4 h-4 mr-2" />
+              {job.location}
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 animate-slide-up stagger-2">
-              <Button variant="hero" size="lg" asChild className="shadow-gold">
-                <Link to={`/apply/${job._id}`}>Apply Now</Link>
-              </Button>
-              <div className="flex gap-3">
-                <Button variant="hero-outline" size="lg" className="px-4">
-                  <Heart className="w-5 h-5" />
-                </Button>
-                <Button variant="hero-outline" size="lg" className="px-4">
-                  <Share2 className="w-5 h-5" />
-                </Button>
-              </div>
+            <div className="flex items-center">
+              <Briefcase className="w-4 h-4 mr-2" />
+              {job.employmentType}
+            </div>
+            <div className="flex items-center">
+              <DollarSign className="w-4 h-4 mr-2" />
+              {job.salary}
             </div>
           </div>
+
+          <Button size="lg" className="w-full md:w-auto" onClick={handleApply}>
+            Apply Now
+          </Button>
         </div>
-      </section>
 
-      {/* Medical notice */}
-      <MedicalNotice />
+        {/* Medical notice */}
+        <MedicalNotice />
 
-      {/* Job content */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Description */}
-              <div className="glass-card rounded-2xl p-6 lg:p-8 animate-slide-up">
-                <h2 className="font-display text-xl font-semibold text-foreground mb-4">
-                  Job Description
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">{job.description}</p>
-              </div>
-
-              {/* Responsibilities */}
-              {job.responsibilities && job.responsibilities.length > 0 && (
-                <div className="glass-card rounded-2xl p-6 lg:p-8 animate-slide-up stagger-1">
-                  <h2 className="font-display text-xl font-semibold text-foreground mb-4">
-                    Responsibilities
-                  </h2>
-                  <ul className="space-y-3">
-                    {job.responsibilities.map((resp, index) => (
-                      <li key={index} className="flex items-start gap-3 text-muted-foreground">
-                        <CheckCircle className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                        {resp}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Requirements */}
-              {job.requirements && job.requirements.length > 0 && (
-                <div className="glass-card rounded-2xl p-6 lg:p-8 animate-slide-up stagger-1">
-                  <h2 className="font-display text-xl font-semibold text-foreground mb-4">
-                    Requirements
-                  </h2>
-                  <ul className="space-y-3">
-                    {job.requirements.map((req, index) => (
-                      <li key={index} className="flex items-start gap-3 text-muted-foreground">
-                        <CheckCircle className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                        {req}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Benefits */}
-              {job.benefits && job.benefits.length > 0 && (
-                <div className="glass-card rounded-2xl p-6 lg:p-8 animate-slide-up stagger-2">
-                  <h2 className="font-display text-xl font-semibold text-foreground mb-4">
-                    Benefits
-                  </h2>
-                  <ul className="space-y-3">
-                    {job.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start gap-3 text-muted-foreground">
-                        <CheckCircle className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+        {/* Job content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          {/* Main content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Description */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-2xl font-bold mb-4">Job Description</h2>
+              <p className="text-gray-700 whitespace-pre-line">
+                {job.description}
+              </p>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Job summary */}
-              <div className="glass-card rounded-2xl p-6 animate-slide-up stagger-1">
-                <h3 className="font-display text-lg font-semibold text-foreground mb-4">
-                  Job Summary
-                </h3>
-                <div className="space-y-4">
-                  {[
-                    { label: "Posted", value: formatDate(job.createdAt), icon: Calendar },
-                    { label: "Experience Level", value: job.experienceLevel, icon: Briefcase },
-                    { label: "Employment Type", value: job.employmentType, icon: Clock },
-                    { label: "Category", value: job.category, icon: Building },
-                  ].map((item, index) => (
-                    <div key={index} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <item.icon className="w-4 h-4" />
-                        {item.label}
-                      </div>
-                      <span className="font-medium text-foreground text-sm">{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Agency provides */}
-              <div className="bg-gradient-hero rounded-2xl p-6 text-primary-foreground animate-slide-up stagger-2">
-                <h3 className="font-display text-lg font-semibold mb-4">
-                  Cotrans Global Provides
-                </h3>
-                <ul className="space-y-3">
-                  {agencyProvides.map((item, index) => (
-                    <li key={index} className="flex items-center gap-3 text-primary-foreground/80">
-                      <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                        <item.icon className="w-4 h-4 text-secondary" />
-                      </div>
-                      <span className="text-sm">{item.text}</span>
+            {/* Responsibilities */}
+            {job.responsibilities && job.responsibilities.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-2xl font-bold mb-4">Responsibilities</h2>
+                <ul className="space-y-2">
+                  {job.responsibilities.map((resp, index) => (
+                    <li key={index} className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700">{resp}</span>
                     </li>
                   ))}
                 </ul>
               </div>
+            )}
 
-              {/* Apply CTA */}
-              <div className="bg-secondary/10 rounded-2xl border border-secondary/20 p-6 text-center animate-slide-up stagger-3">
-                <Clock className="w-12 h-12 text-secondary mx-auto mb-3" />
-                <h3 className="font-display font-semibold text-foreground mb-2">
-                  Don't miss this opportunity!
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Apply now to secure your position
-                </p>
-                <Button variant="gold" className="w-full shadow-gold" asChild>
-                  <Link to={`/apply/${job._id}`}>Apply Now</Link>
-                </Button>
+            {/* Requirements */}
+            {job.requirements && job.requirements.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-2xl font-bold mb-4">Requirements</h2>
+                <ul className="space-y-2">
+                  {job.requirements.map((req, index) => (
+                    <li key={index} className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700">{req}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
+            )}
+
+            {/* Benefits */}
+            {job.benefits && job.benefits.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-2xl font-bold mb-4">Benefits</h2>
+                <ul className="space-y-2">
+                  {job.benefits.map((benefit, index) => (
+                    <li key={index} className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700">{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Job summary */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-xl font-bold mb-4">Job Summary</h3>
+              <div className="space-y-4">
+                {[
+                  {
+                    label: "Posted",
+                    value: formatDate(job.createdAt),
+                    icon: Calendar,
+                  },
+                  {
+                    label: "Experience Level",
+                    value: job.experienceLevel,
+                    icon: Briefcase,
+                  },
+                  {
+                    label: "Employment Type",
+                    value: job.employmentType,
+                    icon: Clock,
+                  },
+                  {
+                    label: "Category",
+                    value: job.category,
+                    icon: Building,
+                  },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-start">
+                    <item.icon className="w-5 h-5 text-primary mr-3 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-gray-600">{item.label}</p>
+                      <p className="font-medium">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Agency provides */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-xl font-bold mb-4">
+                Cotrans Global Provides
+              </h3>
+              <ul className="space-y-3">
+                {agencyProvides.map((item, index) => (
+                  <li key={index} className="flex items-center">
+                    <item.icon className="w-5 h-5 text-primary mr-3" />
+                    <span className="text-gray-700">{item.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Apply CTA */}
+            <div className="bg-primary/10 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-2">
+                Don't miss this opportunity!
+              </h3>
+              <p className="text-gray-700 mb-4">
+                Apply now to secure your position
+              </p>
+              <Button className="w-full" onClick={handleApply}>
+                Apply Now
+              </Button>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </Layout>
   );
 };
