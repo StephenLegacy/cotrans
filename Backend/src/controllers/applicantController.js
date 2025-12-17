@@ -1,4 +1,4 @@
-// APPLY TO JOB CONTROLLER WITH PDF GENERATION + FALLBACK STRATEGY
+// APPLY TO JOB CONTROLLER WITH PDF GENERATION - FIXED VERSION
 import Applicant from "../models/Applicant.js";
 import Job from "../models/Job.js";
 import { Resend } from "resend";
@@ -6,21 +6,10 @@ import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
 import { generateApplicationPDF } from "../utils/pdfTemplateBuilder.js";
+import { scheduleEmail } from "../services/emailQueueService.js";
+
 import dotenv from "dotenv";
-
 dotenv.config();
-
-// -----------------------------
-// CONSTANTS & SETUP
-// -----------------------------
-const MAX_EMAIL_ATTACHMENT_SIZE = 3 * 1024 * 1024; // 3MB (conservative limit)
-const PDF_STORAGE_DIR = path.join(process.cwd(), "storage/applications");
-
-// Ensure storage directory exists
-if (!fs.existsSync(PDF_STORAGE_DIR)) {
-  fs.mkdirSync(PDF_STORAGE_DIR, { recursive: true });
-  console.log('✓ Created PDF storage directory');
-}
 
 // -----------------------------
 // INIT RESEND
@@ -40,7 +29,10 @@ const loadTemplate = (filename, variables) => {
     let template = fs.readFileSync(filePath, "utf8");
 
     for (const key in variables) {
-      template = template.replace(new RegExp(`{{${key}}}`, "g"), variables[key]);
+      const value = variables[key] || '';
+      template = template.replace(new RegExp(`{{${key}}}`, "g"), value);
+      // Also support <%= key %> syntax for EJS-style templates
+      template = template.replace(new RegExp(`<%=\\s*${key}\\s*%>`, "g"), value);
     }
     return template;
   } catch (err) {
@@ -50,76 +42,76 @@ const loadTemplate = (filename, variables) => {
 };
 
 // -----------------------------
-// SAVE PDF TO DISK (NEW FEATURE)
-// -----------------------------
-const savePdfToDisk = async (pdfBuffer, applicantId, jobTitle, fullName) => {
-  try {
-    const filename = `Application_${applicantId}_${fullName.replace(/\s+/g, '_')}_${jobTitle.replace(/\s+/g, '_')}.pdf`;
-    const filePath = path.join(PDF_STORAGE_DIR, filename);
-    
-    await fs.promises.writeFile(filePath, pdfBuffer);
-    console.log('✓ PDF saved to disk:', filename);
-    
-    return {
-      path: filePath,
-      relativePath: `storage/applications/${filename}`,
-      filename
-    };
-  } catch (err) {
-    console.error('❌ Failed to save PDF to disk:', err);
-    throw err;
-  }
-};
-
-// -----------------------------
-// CALCULATE ATTACHMENT SIZE (NEW FEATURE)
-// -----------------------------
-const calculateAttachmentSize = (attachments) => {
-  return attachments.reduce((total, att) => {
-    if (att.content) {
-      const size = Buffer.from(att.content, 'base64').length;
-      return total + size;
-    }
-    return total;
-  }, 0);
-};
-
-// -----------------------------
-// SEND EMAIL USING RESEND
+// SEND EMAIL USING RESEND (WITH SIZE LIMITS)
 // -----------------------------
 const sendEmail = async ({ to, subject, html, text, attachments, replyTo }) => {
   try {
+    // Resend has a 40MB total limit, but we'll be conservative
+    const MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25MB
+    const MAX_SINGLE_ATTACHMENT = 10 * 1024 * 1024; // 10MB per file
+
+    let processedAttachments = [];
+    let totalSize = 0;
+
+    if (attachments && attachments.length > 0) {
+      for (const attachment of attachments) {
+        const attachmentSize = attachment.content 
+          ? Buffer.from(attachment.content, 'base64').length 
+          : 0;
+
+        // Skip attachments that are too large
+        if (attachmentSize > MAX_SINGLE_ATTACHMENT) {
+          console.warn(`⚠️ Skipping attachment ${attachment.filename}: too large (${(attachmentSize / 1024 / 1024).toFixed(2)}MB)`);
+          continue;
+        }
+
+        // Check if adding this would exceed total size
+        if (totalSize + attachmentSize > MAX_TOTAL_SIZE) {
+          console.warn(`⚠️ Skipping attachment ${attachment.filename}: would exceed total size limit`);
+          continue;
+        }
+
+        processedAttachments.push(attachment);
+        totalSize += attachmentSize;
+      }
+
+      console.log(`📎 Total attachments: ${processedAttachments.length}, Total size: ${(totalSize / 1024 / 1024).toFixed(2)}MB`);
+    }
+
     const emailPayload = {
-      from: process.env.FROM_EMAIL,
+      from: process.env.FROM_EMAIL || 'Cotrans Global <onboarding@resend.dev>',
       to,
       subject,
     };
 
+    // Add reply-to if provided
     if (replyTo) {
       emailPayload.reply_to = replyTo;
     }
 
+    // Add content (prefer HTML over text)
     if (html) {
       emailPayload.html = html;
     } else if (text) {
       emailPayload.text = text;
     }
 
-    if (attachments && attachments.length > 0) {
-      emailPayload.attachments = attachments;
+    // Add processed attachments
+    if (processedAttachments.length > 0) {
+      emailPayload.attachments = processedAttachments;
     }
 
-    console.log('📤 Sending email to:', to);
-    console.log('📎 Attachments count:', attachments?.length || 0);
+    console.log('📧 Sending email to:', to);
+    console.log('📎 Attachments count:', processedAttachments.length);
 
     const response = await resend.emails.send(emailPayload);
 
     if (response.error) {
-      console.error('Resend API Error:', response.error);
+      console.error('❌ Resend API Error:', response.error);
       throw new Error(response.error.message || 'Email send failed');
     }
 
-    console.log('✓ Email sent successfully:', response.id);
+    console.log('✅ Email sent successfully:', response.id);
     return response;
   } catch (err) {
     console.error("❌ EMAIL SEND ERROR:", err.message);
@@ -128,9 +120,11 @@ const sendEmail = async ({ to, subject, html, text, attachments, replyTo }) => {
 };
 
 // -----------------------------
-// MAIN APPLICATION HANDLER (UPDATED WITH FALLBACK STRATEGY)
+// APPLY TO JOB - MAIN FUNCTION
 // -----------------------------
 export const applyToJob = async (req, res) => {
+  let applicant = null;
+  
   try {
     const {
       job: jobIdentifier,
@@ -188,7 +182,7 @@ export const applyToJob = async (req, res) => {
     }
 
     // Save applicant to database
-    const applicant = await Applicant.create({
+    applicant = await Applicant.create({
       job: job._id,
       fullName, 
       email, 
@@ -203,59 +197,26 @@ export const applyToJob = async (req, res) => {
       notes
     });
 
-    console.log('✓ Applicant saved to database:', applicant._id);
+    console.log('✅ Applicant saved to database:', applicant._id);
 
-    // Prepare user-uploaded attachments
-    const userAttachments = [];
+    // Prepare passport photo for PDF only
     let passportPhotoBuffer = null;
-
-    if (req.files) {
-      if (req.files.resume) {
-        const resumeBase64 = req.files.resume.data.toString('base64');
-        userAttachments.push({
-          filename: req.files.resume.name,
-          content: resumeBase64,
-        });
-        console.log('📎 Resume attached:', req.files.resume.name, 'Size:', (req.files.resume.size / 1024).toFixed(2), 'KB');
-      }
-
-      if (req.files.passport) {
-        const passportBase64 = req.files.passport.data.toString('base64');
-        userAttachments.push({
-          filename: req.files.passport.name,
-          content: passportBase64,
-        });
-        console.log('📎 Passport attached:', req.files.passport.name, 'Size:', (req.files.passport.size / 1024).toFixed(2), 'KB');
-      }
-
-      if (req.files.passportPhoto) {
-        passportPhotoBuffer = req.files.passportPhoto.data;
-        console.log('📸 Passport photo for PDF:', req.files.passportPhoto.name, 'Size:', (req.files.passportPhoto.size / 1024).toFixed(2), 'KB');
-      }
+    if (req.files && req.files.passportPhoto) {
+      passportPhotoBuffer = req.files.passportPhoto.data;
+      console.log('📷 Passport photo loaded for PDF:', req.files.passportPhoto.name);
     }
 
-    // Generate PDF using the new template builder
-    console.log('📄 Generating professional PDF application...');
+    // Generate PDF Application
+    console.log('📄 Generating PDF application...');
     const pdfBuffer = await generateApplicationPDF(applicant, job, passportPhotoBuffer);
-    const pdfSizeKB = (pdfBuffer.length / 1024).toFixed(2);
-    console.log(`✓ PDF generated successfully: ${pdfSizeKB} KB`);
+    console.log('✅ PDF generated successfully, Size:', (pdfBuffer.length / 1024).toFixed(2), 'KB');
 
-    // FEATURE 1: Save PDF to disk (ALWAYS as backup)
-    const pdfFile = await savePdfToDisk(pdfBuffer, applicant._id, job.title, fullName);
+    // Convert PDF to base64
+    const pdfBase64 = pdfBuffer.toString('base64');
+
+    // STEP 1: Send Admin Email (WITHOUT large attachments, only PDF)
+    console.log('\n📧 STEP 1: Sending admin notification...');
     
-    // Update applicant with PDF path in database
-    applicant.pdfPath = pdfFile.relativePath;
-    await applicant.save();
-    console.log('✓ PDF path saved to database');
-
-    // FEATURE 2: Generate secure download URL
-    const downloadUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/api/applicants/${applicant._id}/download`;
-
-    // ============================================
-    // ADMIN EMAIL - NATURE'S REDUNDANCY STRATEGY
-    // ============================================
-    
-    // Prepare admin email content
     const adminHtmlTemplate = loadTemplate("adminApplicationTemplate.html", {
       jobTitle: job.title,
       fullName,
@@ -268,184 +229,187 @@ export const applyToJob = async (req, res) => {
       coverLetter: coverLetter || 'Not provided',
       medicalAmount: amountNum,
       notes: notes || 'None',
-      applicantId: applicant._id,
-      downloadUrl
+      applicantId: applicant._id
     });
 
-    const adminFallbackHtml = adminHtmlTemplate || `
-      <h2>New Job Application: ${job.title}</h2>
-      <p><strong>Applicant:</strong> ${fullName}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone}</p>
-      <hr>
-      <p><a href="${downloadUrl}" style="background: #1a56db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Download Application PDF</a></p>
-    `;
+    const adminEmailOptions = {
+      to: process.env.ADMIN_EMAIL || 'admin@cotransglobal.com',
+      subject: `New Job Application: ${job.title} - ${fullName}`,
+      replyTo: email,
+      attachments: [{
+        filename: `Application_${applicant.fullName.replace(/\s+/g, '_')}.pdf`,
+        content: pdfBase64,
+      }]
+    };
 
-    // Prepare all possible attachments
-    const allAdminAttachments = [...userAttachments, {
-      filename: pdfFile.filename,
-      content: pdfBuffer.toString('base64')
-    }];
-
-    const totalSize = calculateAttachmentSize(allAdminAttachments);
-    console.log(`📊 Total attachment size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
-
-    let adminEmailSuccess = false;
-
-    // LAYER 1: Try with ALL attachments (resume + passport + PDF)
-    if (totalSize < MAX_EMAIL_ATTACHMENT_SIZE) {
-      try {
-        console.log('🔄 LAYER 1: Attempting admin email with ALL attachments...');
-        await sendEmail({
-          to: process.env.ADMIN_EMAIL,
-          subject: `New Application: ${job.title} - ${fullName}`,
-          html: adminFallbackHtml,
-          replyTo: email,
-          attachments: allAdminAttachments
-        });
-        adminEmailSuccess = true;
-        console.log('✅ LAYER 1 SUCCESS: Admin email sent with all attachments');
-      } catch (err) {
-        console.log('⚠️ LAYER 1 FAILED: Trying fallback...');
-      }
+    if (adminHtmlTemplate) {
+      adminEmailOptions.html = adminHtmlTemplate;
     } else {
-      console.log('⚠️ LAYER 1 SKIPPED: Attachments exceed size limit');
+      adminEmailOptions.text = `
+New Application for: ${job.title}
+
+Applicant Details:
+------------------
+Name: ${fullName}
+Email: ${email}
+Phone: ${phone || 'N/A'}
+Date of Birth: ${dateOfBirth || 'N/A'}
+Nationality: ${nationality || 'Kenyan'}
+
+Experience:
+${experience}
+
+Education:
+${education}
+
+Cover Letter:
+${coverLetter || 'N/A'}
+
+Medical Fee: Kshs. ${amountNum}
+Notes: ${notes || 'None'}
+
+Applicant ID: ${applicant._id}
+
+Note: Resume and passport documents can be requested from the applicant directly.
+      `.trim();
     }
 
-    // LAYER 2: Try with USER attachments only (no PDF)
-    if (!adminEmailSuccess && userAttachments.length > 0) {
+    // Send admin email - THIS MUST SUCCEED
+    try {
+      const adminResult = await sendEmail(adminEmailOptions);
+      console.log('✅ Admin email sent successfully:', adminResult.id);
+    } catch (adminError) {
+      console.error('❌ CRITICAL: Failed to send admin email:', adminError.message);
+      
+      // Try without PDF as last resort
       try {
-        console.log('🔄 LAYER 2: Attempting admin email with user attachments only...');
-        const layer2Html = adminFallbackHtml + `
-          <br><br>
-          <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
-            <p style="margin: 0; color: #92400e;"><strong>⚠️ Note:</strong> PDF was too large to attach.</p>
-            <p style="margin: 5px 0 0 0;"><a href="${downloadUrl}">Download Application PDF here</a></p>
-          </div>
-        `;
-        
-        await sendEmail({
-          to: process.env.ADMIN_EMAIL,
-          subject: `New Application: ${job.title} - ${fullName}`,
-          html: layer2Html,
-          replyTo: email,
-          attachments: userAttachments
-        });
-        adminEmailSuccess = true;
-        console.log('✅ LAYER 2 SUCCESS: Admin email sent with user attachments only');
-      } catch (err) {
-        console.log('⚠️ LAYER 2 FAILED: Trying minimal fallback...');
+        console.log('⚠️ Attempting admin email without PDF...');
+        const fallbackOptions = { ...adminEmailOptions };
+        delete fallbackOptions.attachments;
+        const fallbackResult = await sendEmail(fallbackOptions);
+        console.log('✅ Admin email sent without PDF:', fallbackResult.id);
+      } catch (fallbackError) {
+        console.error('❌ CRITICAL: Admin email failed completely:', fallbackError.message);
+        throw new Error('Failed to notify admin. Application saved but notification failed.');
       }
     }
 
-    // LAYER 3: Send with DOWNLOAD LINK only (no attachments)
-    if (!adminEmailSuccess) {
-      try {
-        console.log('🔄 LAYER 3: Attempting admin email with download link only...');
-        const layer3Html = adminFallbackHtml + `
-          <br><br>
-          <div style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 12px; margin: 20px 0;">
-            <p style="margin: 0; color: #991b1b;"><strong>⚠️ Important:</strong> All attachments were too large to send via email.</p>
-            <p style="margin: 5px 0 0 0;"><a href="${downloadUrl}" style="color: #dc2626; font-weight: bold;">Click here to download the complete application package</a></p>
-          </div>
-        `;
-        
-        await sendEmail({
-          to: process.env.ADMIN_EMAIL,
-          subject: `🔗 New Application (Download Required): ${job.title} - ${fullName}`,
-          html: layer3Html,
-          replyTo: email
-        });
-        console.log('✅ LAYER 3 SUCCESS: Admin email sent with download link');
-      } catch (err) {
-        console.error('❌ ALL LAYERS FAILED: Could not send admin email:', err.message);
-      }
-    }
-
-    // ============================================
-    // USER CONFIRMATION EMAIL - REDUNDANCY STRATEGY
-    // ============================================
+    // STEP 2: Send User Confirmation Email with PDF
+    console.log('\n📧 STEP 2: Sending applicant confirmation...');
     
     const userHtmlTemplate = loadTemplate("userApplicationTemplate.html", {
       fullName,
       jobTitle: job.title,
-      downloadUrl
+      name: fullName
     });
 
-    const userFallbackHtml = userHtmlTemplate || `
-      <h2>Application Received</h2>
-      <p>Dear ${fullName},</p>
-      <p>Thank you for applying for the <strong>${job.title}</strong> position.</p>
-      <p>Your application has been successfully submitted and our team will review it shortly.</p>
-      <p><a href="${downloadUrl}" style="background: #1a56db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Download Your Application Copy</a></p>
-      <p>Best regards,<br>Cotrans Global Team</p>
-    `;
+    const userEmailOptions = {
+      to: email,
+      subject: `Application Received: ${job.title} - Cotrans Global`,
+      attachments: [{
+        filename: `Your_Application_${job.title.replace(/\s+/g, '_')}.pdf`,
+        content: pdfBase64
+      }]
+    };
 
-    let userEmailSuccess = false;
+    if (userHtmlTemplate) {
+      userEmailOptions.html = userHtmlTemplate;
+    } else {
+      userEmailOptions.text = `
+Dear ${fullName},
 
-    // LAYER 1: Try with PDF attachment
-    if (pdfBuffer.length < MAX_EMAIL_ATTACHMENT_SIZE) {
+Thank you for applying for the ${job.title} position at Cotrans Global.
+
+We have successfully received your application and our team will review it shortly.
+
+If your qualifications match our requirements, we will contact you within 3-5 business days.
+
+Next Steps:
+• Our team will review your application
+• Shortlisted candidates will be contacted for interviews
+• Successful candidates will undergo medical assessment (Kshs. 8,000)
+• Visa processing and job placement assistance will be provided
+
+Best regards,
+Cotrans Global Recruitment Team
+      `.trim();
+    }
+
+    // Send user email - THIS MUST SUCCEED BEFORE PAYMENT EMAIL
+    try {
+      const userResult = await sendEmail(userEmailOptions);
+      console.log('✅ Applicant confirmation email sent successfully:', userResult.id);
+    } catch (userError) {
+      console.error('❌ WARNING: Failed to send user email with PDF:', userError.message);
+      
+      // Try without PDF
       try {
-        console.log('🔄 Sending user confirmation with PDF...');
-        await sendEmail({
-          to: email,
-          subject: `Application Received: ${job.title} - Cotrans Global`,
-          html: userFallbackHtml,
-          attachments: [{
-            filename: pdfFile.filename,
-            content: pdfBuffer.toString('base64')
-          }]
-        });
-        userEmailSuccess = true;
-        console.log('✅ User email sent with PDF attachment');
-      } catch (err) {
-        console.log('⚠️ User email with PDF failed, trying without...');
+        console.log('⚠️ Attempting user email without PDF...');
+        const fallbackUserOptions = { ...userEmailOptions };
+        delete fallbackUserOptions.attachments;
+        const fallbackResult = await sendEmail(fallbackUserOptions);
+        console.log('✅ User email sent without PDF:', fallbackResult.id);
+      } catch (fallbackError) {
+        console.error('❌ CRITICAL: User email failed completely:', fallbackError.message);
+        throw new Error('Failed to send confirmation email. Please check your email address.');
       }
     }
 
-    // LAYER 2: Send with DOWNLOAD LINK only
-    if (!userEmailSuccess) {
-      try {
-        console.log('🔄 Sending user confirmation with download link...');
-        const fallbackUserHtml = userFallbackHtml + `
-          <br><br>
-          <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px;">
-            <p style="margin: 0; color: #92400e;">Your application PDF is available for download using the link above.</p>
-          </div>
-        `;
-        
-        await sendEmail({
-          to: email,
-          subject: `Application Received: ${job.title} - Cotrans Global`,
-          html: fallbackUserHtml
-        });
-        console.log('✅ User email sent with download link');
-      } catch (err) {
-        console.error('❌ User email failed:', err.message);
-      }
+    // STEP 3: Only schedule payment email if previous emails succeeded
+    console.log('\n📧 STEP 3: Scheduling payment details email...');
+    try {
+      scheduleEmail({
+        to: email,
+        subject: `Next Steps: Complete Your Application - ${job.title}`,
+        templateName: 'paymentDetailsTemplate.html',
+        variables: {
+          fullName: applicant.fullName,
+          jobTitle: job.title,
+          applicantId: applicant._id.toString(),
+        }
+      }, 10); // 10 minutes delay
+      console.log('✅ Payment details email scheduled for 10 minutes from now');
+    } catch (scheduleError) {
+      console.warn('⚠️ Email scheduling not available:', scheduleError.message);
+      // Don't throw - this is not critical
     }
 
-    // Return success response
+    // SUCCESS RESPONSE
     res.status(200).json({ 
       success: true,
       message: 'Application submitted successfully! Check your email for confirmation.',
       applicant: {
         id: applicant._id,
         fullName: applicant.fullName,
-        email: applicant.email,
-        downloadUrl // NEW: Include download URL in response
+        email: applicant.email
       }
     });
 
   } catch (err) {
     console.error('❌ Application submission error:', err);
     
+    // If applicant was saved but emails failed, we should still return success
+    // but with a warning about email
+    if (applicant) {
+      return res.status(200).json({ 
+        success: true,
+        message: 'Application submitted successfully, but email notification may have failed. We will contact you shortly.',
+        warning: 'Email notification pending',
+        applicant: {
+          id: applicant._id,
+          fullName: applicant.fullName,
+          email: applicant.email
+        }
+      });
+    }
+    
+    // If applicant wasn't saved, this is a real error
     let errorMessage = 'Failed to submit application. Please try again later.';
     
-    if (err.code === 'EAUTH') {
-      errorMessage = 'Email authentication failed. Please contact support.';
-    } else if (err.code === 'ECONNECTION' || err.code === 'ETIMEDOUT') {
-      errorMessage = 'Could not connect to email server. Please try again later.';
+    if (err.message.includes('Failed to notify admin')) {
+      errorMessage = 'Application saved but admin notification failed. We will review your application soon.';
+    } else if (err.message.includes('Failed to send confirmation')) {
+      errorMessage = 'Application saved but confirmation email failed. Please check your email address.';
     }
     
     res.status(500).json({ 
@@ -457,58 +421,7 @@ export const applyToJob = async (req, res) => {
 };
 
 // -----------------------------
-// DOWNLOAD APPLICATION PDF (NEW FEATURE 3)
-// -----------------------------
-export const downloadApplicationPdf = async (req, res) => {
-  try {
-    const applicant = await Applicant.findById(req.params.id);
-    
-    if (!applicant) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'Application not found' 
-      });
-    }
-
-    if (!applicant.pdfPath) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'PDF file not found for this application' 
-      });
-    }
-
-    const filePath = path.join(process.cwd(), applicant.pdfPath);
-    
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'PDF file no longer exists on server' 
-      });
-    }
-
-    // Serve the file for download
-    res.download(filePath, path.basename(filePath), (err) => {
-      if (err) {
-        console.error('❌ Download error:', err);
-        if (!res.headersSent) {
-          res.status(500).json({ 
-            success: false,
-            message: 'Failed to download file' 
-          });
-        }
-      }
-    });
-  } catch (err) {
-    console.error('❌ Download error:', err);
-    res.status(500).json({ 
-      success: false,
-      message: err.message 
-    });
-  }
-};
-
-// -----------------------------
-// EXISTING FUNCTIONS (UNCHANGED)
+// LIST APPLICANTS FOR JOB
 // -----------------------------
 export const listApplicantsForJob = async (req, res) => {
   try {
@@ -530,7 +443,7 @@ export const listApplicantsForJob = async (req, res) => {
 
     const applicants = await Applicant.find({ job: job._id })
       .populate('job', 'title company location')
-      .sort({ appliedAt: -1 });
+      .sort({ createdAt: -1 });
     
     res.json({ 
       success: true,
@@ -545,6 +458,9 @@ export const listApplicantsForJob = async (req, res) => {
   }
 };
 
+// -----------------------------
+// GET SINGLE APPLICANT
+// -----------------------------
 export const getApplicant = async (req, res) => {
   try {
     const applicant = await Applicant.findById(req.params.id)
@@ -570,6 +486,47 @@ export const getApplicant = async (req, res) => {
   }
 };
 
+// -----------------------------
+// DOWNLOAD APPLICATION PDF
+// -----------------------------
+export const downloadApplicationPdf = async (req, res) => {
+  try {
+    const applicant = await Applicant.findById(req.params.id)
+      .populate('job', 'title company location salary');
+    
+    if (!applicant) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Applicant not found' 
+      });
+    }
+
+    // Generate PDF
+    console.log('Generating PDF for applicant:', applicant._id);
+    const pdfBuffer = await generateApplicationPDF(applicant, applicant.job, null);
+    
+    // Set response headers for PDF download
+    const filename = `Application_${applicant.fullName.replace(/\s+/g, '_')}_${applicant.job.title.replace(/\s+/g, '_')}.pdf`;
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    res.send(pdfBuffer);
+    console.log('PDF downloaded successfully');
+  } catch (err) {
+    console.error('Download PDF error:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to generate PDF',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+};
+
+// -----------------------------
+// SHORTLIST APPLICANT
+// -----------------------------
 export const shortlistApplicant = async (req, res) => {
   try {
     const applicant = await Applicant.findByIdAndUpdate(
@@ -610,6 +567,9 @@ export const shortlistApplicant = async (req, res) => {
   }
 };
 
+// -----------------------------
+// REJECT APPLICANT
+// -----------------------------
 export const rejectApplicant = async (req, res) => {
   try {
     const applicant = await Applicant.findByIdAndUpdate(
@@ -643,6 +603,56 @@ export const rejectApplicant = async (req, res) => {
     });
   } catch (err) {
     console.error('Reject applicant error:', err);
+    res.status(500).json({ 
+      success: false,
+      message: err.message 
+    });
+  }
+};
+
+// -----------------------------
+// GET ALL APPLICANTS (ADMIN)
+// -----------------------------
+export const getAllApplicants = async (req, res) => {
+  try {
+    const applicants = await Applicant.find()
+      .populate('job', 'title company location')
+      .sort({ createdAt: -1 });
+    
+    res.json({ 
+      success: true,
+      count: applicants.length,
+      applicants 
+    });
+  } catch (err) {
+    console.error('Get all applicants error:', err);
+    res.status(500).json({ 
+      success: false,
+      message: err.message 
+    });
+  }
+};
+
+// -----------------------------
+// DELETE APPLICANT
+// -----------------------------
+export const deleteApplicant = async (req, res) => {
+  try {
+    const applicant = await Applicant.findByIdAndDelete(req.params.id);
+    
+    if (!applicant) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Applicant not found' 
+      });
+    }
+    
+    res.json({ 
+      success: true,
+      message: 'Applicant deleted successfully' 
+    });
+  } catch (err) {
+    console.error('Delete applicant error:', err);
     res.status(500).json({ 
       success: false,
       message: err.message 
