@@ -1,0 +1,35 @@
+# Backend/.dockerignore
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+*.md
+.vscode
+.idea
+coverage
+.nyc_output
+dist
+uploads/*
+!uploads/.gitkeep
+logs
+*.log
+
+# Frontend/.dockerignore
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+*.md
+.vscode
+.idea
+coverage
+.nyc_output
+dist
+build
+.cache
+public/uploads
+*.log
