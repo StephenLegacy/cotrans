@@ -1,0 +1,393 @@
+<!-- Backend/src/emails/paymentDetailsTemplate.html -->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>Next Steps: Medical Fee Payment - Cotrans Global</title>
+  <style type="text/css">
+    body { 
+      margin: 0 !important; 
+      padding: 0 !important; 
+      background-color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    table { border-collapse: collapse !important; }
+    img { max-width: 100% !important; display: block !important; }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; }
+      .mobile-padding { padding: 20px 16px !important; }
+      h1 { font-size: 22px !important; }
+      h2 { font-size: 18px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9;">
+  
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f1f5f9;">
+    <tr>
+      <td align="center" style="padding: 20px 10px;">
+        
+        <!-- Email Container -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+          
+          <!-- Header -->
+          <tr>
+            <td class="mobile-padding" style="padding: 32px 32px 24px; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); text-align: center;">
+              <h1 style="margin: 0 0 8px 0; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1.3;">
+                Welcome to Your Journey! 🌟
+              </h1>
+              <p style="margin: 0; color: #d4af37; font-size: 14px; font-weight: 600; letter-spacing: 0.5px;">
+                COTRANS GLOBAL CORPORATION
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td class="mobile-padding" style="padding: 32px;">
+              
+              <!-- Greeting -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 20px;">
+                    <p style="margin: 0 0 16px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
+                      Dear <strong style="color: #1e3a8a;">{{fullName}}</strong>,
+                    </p>
+                    <p style="margin: 0; color: #475569; font-size: 15px; line-height: 1.7;">
+                      Thank you for taking the first step towards an exciting career opportunity in the UAE with <strong>Cotrans Global Corporation</strong>. We're thrilled to support you on this journey!
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Important Notice -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 20px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border-left: 4px solid #d4af37;">
+                    <p style="margin: 0 0 8px 0; color: #78350f; font-size: 14px; font-weight: 700;">
+                      📋 Application Status: Under Review
+                    </p>
+                    <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.6;">
+                      Your application for <strong>{{jobTitle}}</strong> is currently being reviewed by our recruitment specialists. We carefully evaluate each candidate to ensure the best match.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Spacer -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="height: 24px;"></td>
+                </tr>
+              </table>
+              
+              <!-- Next Steps Section -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 20px; font-weight: 700;">
+                      📍 Next Steps in Your Application
+                    </h2>
+                    <p style="margin: 0 0 20px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+                      To proceed with your application and secure your position, we require completion of the mandatory medical assessment. This is a standard requirement for all UAE employment visas.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Medical Fee Details Card -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 24px; background-color: #f8fafc; border-radius: 12px; border: 2px solid #e2e8f0;">
+                    <h3 style="margin: 0 0 16px 0; color: #1e3a8a; font-size: 18px; font-weight: 700;">
+                      💳 Medical Assessment Fee
+                    </h3>
+                    
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                          <p style="margin: 0; color: #64748b; font-size: 13px;">Amount Required</p>
+                          <p style="margin: 4px 0 0 0; color: #1e293b; font-size: 22px; font-weight: 700;">
+                            Kshs. 8,000
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 12px 0;">
+                          <p style="margin: 0 0 4px 0; color: #64748b; font-size: 13px;">Purpose</p>
+                          <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.5;">
+                            Comprehensive medical examination and UAE visa health requirements
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Spacer -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="height: 24px;"></td>
+                </tr>
+              </table>
+              
+              <!-- Payment Methods -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">
+                      💰 How to Pay
+                    </h3>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- M-PESA Option -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
+                <tr>
+                  <td style="padding: 20px; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 10px; border-left: 3px solid #16a34a;">
+                    <p style="margin: 0 0 12px 0; color: #14532d; font-size: 16px; font-weight: 700;">
+                      <!-- 📱 Option 1: M-PESA (Recommended) --> M-PESA Payment (Other Methods Coming Soon)
+                    </p>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <p style="margin: 0; color: #15803d; font-size: 13px; font-weight: 600;">Paybill Number:</p>
+                          <p style="margin: 4px 0 0 0; color: #14532d; font-size: 20px; font-weight: 700; letter-spacing: 2px;">
+                            985050
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <p style="margin: 0; color: #15803d; font-size: 13px; font-weight: 600;">Account Number:</p>
+                          <p style="margin: 4px 0 0 0; color: #14532d; font-size: 16px; font-weight: 700;">
+                            <!-- {{applicantId}} -->
+                             0900663901
+                          </p>
+                          <p style="margin: 4px 0 0 0; color: #16a34a; font-size: 11px; font-style: italic;">
+                            <!-- (Your unique application reference) -->
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <p style="margin: 0; color: #15803d; font-size: 13px; font-weight: 600;">Amount:</p>
+                          <p style="margin: 4px 0 0 0; color: #14532d; font-size: 16px; font-weight: 700;">
+                            Kshs. 8,000
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Bank Transfer Option -->
+              <!-- <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 10px; border-left: 3px solid #3b82f6;">
+                    <p style="margin: 0 0 12px 0; color: #1e3a8a; font-size: 16px; font-weight: 700;">
+                      🏦 Option 2: Bank Transfer
+                    </p>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td style="padding: 6px 0;">
+                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Bank Name:</p>
+                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">Equity Bank</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0;">
+                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Account Name:</p>
+                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">Cotrans Global Recruitment</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0;">
+                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Account Number:</p>
+                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">0123456789</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0;">
+                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Reference:</p>
+                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">{{applicantId}}</p>
+                        </td>
+                      </tr>
+                    </table> -->
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Spacer -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="height: 24px;"></td>
+                </tr>
+              </table>
+              
+              <!-- Important: After Payment -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 20px; background-color: #eff6ff; border-radius: 10px; border-left: 3px solid #3b82f6;">
+                    <p style="margin: 0 0 10px 0; color: #1e3a8a; font-size: 15px; font-weight: 700;">
+                      ✅ After Making Payment
+                    </p>
+                    <p style="margin: 0 0 8px 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
+                      • Take a clear screenshot or photo of your payment confirmation
+                    </p>
+                    <p style="margin: 0 0 8px 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
+                      • Email it to: <a href="mailto:hello@cotransglobal.com" style="color: #3b82f6; text-decoration: none; font-weight: 600;">hello@cotransglobal.com</a>
+                    </p>
+                    <p style="margin: 0 0 8px 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
+                      • Include your Application ID: <strong>{{applicantId}}</strong>
+                    </p>
+                    <p style="margin: 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
+                      • We'll confirm within 24 hours and schedule your medical assessment
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Spacer -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="height: 24px;"></td>
+                </tr>
+              </table>
+              
+              <!-- What This Covers -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 14px 0; color: #1e293b; font-size: 17px; font-weight: 700;">
+                      🏥 What Your Medical Fee Covers
+                    </h3>
+                  </td>
+                </tr>
+              </table>
+              
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 10px;">
+                    <span style="color: #16a34a; font-size: 16px; margin-right: 8px;">✓</span>
+                    <span style="color: #475569; font-size: 13px;">Comprehensive medical examination by UAE-approved doctors</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 10px;">
+                    <span style="color: #16a34a; font-size: 16px; margin-right: 8px;">✓</span>
+                    <span style="color: #475569; font-size: 13px;">Blood tests and health screenings required for UAE visa</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 10px;">
+                    <span style="color: #16a34a; font-size: 16px; margin-right: 8px;">✓</span>
+                    <span style="color: #475569; font-size: 13px;">X-ray examination and health certificate</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 10px;">
+                    <span style="color: #16a34a; font-size: 16px; margin-right: 8px;">✓</span>
+                    <span style="color: #475569; font-size: 13px;">Medical report processing for visa application</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span style="color: #16a34a; font-size: 16px; margin-right: 8px;">✓</span>
+                    <span style="color: #475569; font-size: 13px;">Pre-departure health consultation</span>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Spacer -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="height: 24px;"></td>
+                </tr>
+              </table>
+              
+              <!-- Need Help -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 20px; background-color: #f8fafc; border-radius: 10px; text-align: center;">
+                    <p style="margin: 0 0 12px 0; color: #1e293b; font-size: 15px; font-weight: 700;">
+                      💬 Need Assistance?
+                    </p>
+                    <p style="margin: 0 0 12px 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                      Our team is here to help you every step of the way
+                    </p>
+                    <p style="margin: 0 0 6px 0;">
+                      <span style="color: #3b82f6; font-size: 14px;">📧</span>
+                      <a href="mailto:hello@cotransglobal.com" style="color: #3b82f6; text-decoration: none; font-size: 14px; font-weight: 600;">hello@cotransglobal.com</a>
+                    </p>
+                    <p style="margin: 0 0 6px 0;">
+                      <!-- <span style="color: #3b82f6; font-size: 14px;">📞</span>
+                      <a href="tel:+254123456789" style="color: #3b82f6; text-decoration: none; font-size: 14px; font-weight: 600;">+254 123 456 789</a> -->
+                    </p>
+                    <p style="margin: 0;">
+                      <span style="color: #3b82f6; font-size: 14px;">⏰</span>
+                      <span style="color: #64748b; font-size: 13px;">Mon-Fri: 8:00 AM - 6:00 PM EAT</span>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Spacer -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="height: 20px;"></td>
+                </tr>
+              </table>
+              
+              <!-- Closing -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 8px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+                      We're excited to be part of your journey to the UAE and look forward to helping you achieve your career goals!
+                    </p>
+                    <p style="margin: 0 0 6px 0; color: #475569; font-size: 14px;">
+                      Best regards,
+                    </p>
+                    <p style="margin: 0 0 2px 0; color: #1e293b; font-size: 14px; font-weight: 700;">
+                      The Cotrans Global Team
+                    </p>
+                    <p style="margin: 0; color: #64748b; font-size: 12px; font-style: italic;">
+                      Your Trusted Partner for UAE Careers
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td class="mobile-padding" style="padding: 24px; text-align: center; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0 0 8px 0; color: #94a3b8; font-size: 11px; line-height: 1.5;">
+                © 2025 Cotrans Global Recruitment Agency<br/>
+                Nairobi, Kenya | Licensed UAE Recruitment Partner
+              </p>
+              <p style="margin: 0; font-size: 10px; color: #cbd5e1; line-height: 1.4;">
+                This email contains important payment information for your application.<br/>
+                Please do not reply to this automated email. Contact us at hello@cotransglobal.com
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+  
+</body>
+</html>
