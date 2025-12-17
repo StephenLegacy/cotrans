@@ -8,12 +8,18 @@ import applicantRoutes from './src/routes/applicantRoutes.js';
 import fileUpload from 'express-fileupload';
 import contactRoutes from './src/routes/contactRoutes.js';
 import resendWebhook from "./src/routes/resendWebhook.js";
+import healthRoutes from './src/routes/healthRoutes.js';
+import { startEmailQueueProcessor } from './src/services/emailQueueService.js';
+// Monitoring routes (for admins)
+import emailQueueRoutes from './src/routes/emailQueueRoutes.js';
+
 
 // Load environment variables
 dotenv.config();
 
 // Initialize Express
 const app = express();
+
 
 // Middleware
 app.use(cors());
@@ -31,12 +37,15 @@ connectDB()
 
 // Health check / test route
 app.get('/', (req, res) => res.send('Cotrans Global Corporation Backend v2 is running'));
+app.use('/api', healthRoutes);
+
 
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applicants', applicantRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/admin', emailQueueRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -44,6 +53,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
+// After Express app setup, before server.listen()
+startEmailQueueProcessor();
+
 // Start server
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => console.log(`Senior Dev StephenLegacy, The Server is running on port ${PORT}`));
+
