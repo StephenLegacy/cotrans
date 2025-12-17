@@ -1,5 +1,4 @@
 // src/utils/pdfTemplateBuilder.js
-// PROFESSIONAL PDF TEMPLATE BUILDER - FINAL PRODUCTION VERSION
 import PDFDocument from "pdfkit";
 import path from "path";
 import fs from "fs";
@@ -285,24 +284,24 @@ export const generateApplicationPDF = async (applicant, job, passportPhotoBuffer
       // ============================================
       // MEDICAL FEE PAYMENT
       // ============================================
-      doc.roundedRect(40, currentY, 515, 42, 6)
-         .fillAndStroke('#f0fdf4', '#86efac');
+      // doc.roundedRect(40, currentY, 515, 42, 6)
+      //    .fillAndStroke('#f0fdf4', '#86efac');
 
-      doc.fontSize(11)
-         .fillColor('#15803d')
-         .font('Helvetica-Bold')
-         .text('MEDICAL FEE PAYMENT PENDING', 50, currentY + 9);
+      // doc.fontSize(11)
+      //    .fillColor('#15803d')
+      //    .font('Helvetica-Bold')
+      //    .text('MEDICAL FEE PAYMENT PENDING', 50, currentY + 9);
 
-      doc.fontSize(15)
-         .fillColor('#166534')
-         .text(`Kshs. ${(applicant.medicalAmount || 0).toLocaleString()}`, 50, currentY + 24);
+      // doc.fontSize(15)
+      //    .fillColor('#166534')
+      //    .text(`Kshs. ${(applicant.medicalAmount || 0).toLocaleString()}`, 50, currentY + 24);
 
-      doc.fontSize(9)
-         .fillColor('#15803d')
-         .font('Helvetica')
-         .text('Your payment is pending Approval', 360, currentY + 27);
+      // doc.fontSize(9)
+      //    .fillColor('#15803d')
+      //    .font('Helvetica')
+      //    .text('Your payment is pending Approval', 360, currentY + 27);
 
-      currentY += 52;
+      // currentY += 52;
 
       // ============================================
       // ADDITIONAL NOTES (IF PROVIDED)
@@ -505,7 +504,7 @@ export const generateApplicationPDF = async (applicant, job, passportPhotoBuffer
          .text('For questions about data protection or to exercise your rights, please contact our Data Protection Officer at: ', 40, y, { continued: true, width: 515 })
          .fillColor('#1e40af')
          .font('Helvetica-Bold')
-         .text('privacy@cotransglobal.com');
+         .text('hello@cotransglobal.com');
 
       // ============================================
       // COMPANY DETAILS FOOTER (PAGE 3)
@@ -518,7 +517,7 @@ export const generateApplicationPDF = async (applicant, job, passportPhotoBuffer
       doc.fontSize(14)
          .fillColor('#1e40af')
          .font('Helvetica-Bold')
-         .text('COTRANS GLOBAL', 52, y + 14);
+         .text('COTRANS GLOBAL CORPORATION', 52, y + 14);
 
       doc.fontSize(10)
          .fillColor('#1e293b')
@@ -544,7 +543,7 @@ export const generateApplicationPDF = async (applicant, job, passportPhotoBuffer
       doc.font('Helvetica')
          .text('Phone:', 300, y + 62, { continued: true })
          .font('Helvetica-Bold')
-         .text(' +254 700 000 000');
+         // .text(' +254 700 000 000');
 
       doc.end();
 
