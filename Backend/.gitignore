@@ -10,8 +10,6 @@
 .env.test.local
 .env.production.local
 
-# Files
-paymentDetailsTemplate.html
 
 # Logs
 npm-debug.log*

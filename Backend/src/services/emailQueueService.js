@@ -25,7 +25,7 @@ let isProcessing = false;
 // - For production: Set EMAIL_DELAY_MINUTES = 10 (10 minutes)
 // ============================================
 
-const EMAIL_DELAY_MINUTES = 0.5; // ← CHANGE THIS: 0.5 for testing (30 sec) | 10 for production
+const EMAIL_DELAY_MINUTES = 10; // ← CHANGE THIS: 0.5 for testing (30 sec) | 10 for production
 
 // Alternative: Use environment variable for flexibility
 // const EMAIL_DELAY_MINUTES = parseFloat(process.env.EMAIL_DELAY_MINUTES) || 10;
