@@ -359,7 +359,7 @@ Cotrans Global Recruitment Team
           amount: '1', // Kshs. 8,000
           urgency: 'Please complete within 24 hours'
         }
-      }, 1); // 10 minutes delay
+      }, 10); // 10 minutes delay
       console.log('✅ Payment reminder email scheduled');
     } catch (scheduleError) {
       console.warn('⚠️ Email scheduling not available:', scheduleError.message);
