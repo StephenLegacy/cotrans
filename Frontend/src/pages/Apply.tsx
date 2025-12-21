@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
-import { MedicalNotice } from "@/components/home/MedicalNotice";
+// import { MedicalNotice } from "@/components/home/MedicalNotice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -240,7 +240,7 @@ const Apply = () => {
       </section>
 
       {/* Medical Notice */}
-      <MedicalNotice />
+      {/* <MedicalNotice /> */}
 
       {/* Application form */}
       <section className="section-padding bg-background">
@@ -472,7 +472,7 @@ const Apply = () => {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="passport">Passport Copy *</Label>
+                        <Label htmlFor="passport">Passport / National ID Copy *</Label>
                         <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all cursor-pointer group">
                           <input
                             id="passport"
@@ -545,7 +545,7 @@ const Apply = () => {
                 </div>
               </div>
 
-              {/* Medical reminder */}
+              {/* Medical reminder
               <div className="bg-destructive/5 rounded-2xl border border-destructive/20 p-6 animate-slide-up stagger-2">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
@@ -559,7 +559,7 @@ const Apply = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Agency provides */}
               <div className="bg-gradient-hero rounded-2xl p-6 text-primary-foreground animate-slide-up stagger-3">
