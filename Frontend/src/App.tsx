@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Jobs from "./pages/Jobs";
@@ -13,6 +14,7 @@ import Admin from "./pages/Admin";
 import PrivacyPolicy from "./pages/Privacy";
 import TermsOfService from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import Payment from "./pages/Payment"; // ✅ ADD THIS
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,7 @@ const App = () => (
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:slug" element={<JobDetails />} />
           <Route path="/apply/:id" element={<Apply />} />
+          <Route path="/pay/:applicantId" element={<Payment />} /> {/* ✅ NEW */}
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

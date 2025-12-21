@@ -1,4 +1,4 @@
-// APPLY TO JOB CONTROLLER WITH PDF GENERATION - FIXED VERSION
+// APPLY TO JOB CONTROLLER - FIXED PAYMENT FLOW
 import Applicant from "../models/Applicant.js";
 import Job from "../models/Job.js";
 import { Resend } from "resend";
@@ -31,7 +31,6 @@ const loadTemplate = (filename, variables) => {
     for (const key in variables) {
       const value = variables[key] || '';
       template = template.replace(new RegExp(`{{${key}}}`, "g"), value);
-      // Also support <%= key %> syntax for EJS-style templates
       template = template.replace(new RegExp(`<%=\\s*${key}\\s*%>`, "g"), value);
     }
     return template;
@@ -46,7 +45,6 @@ const loadTemplate = (filename, variables) => {
 // -----------------------------
 const sendEmail = async ({ to, subject, html, text, attachments, replyTo }) => {
   try {
-    // Resend has a 40MB total limit, but we'll be conservative
     const MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25MB
     const MAX_SINGLE_ATTACHMENT = 10 * 1024 * 1024; // 10MB per file
 
@@ -59,13 +57,11 @@ const sendEmail = async ({ to, subject, html, text, attachments, replyTo }) => {
           ? Buffer.from(attachment.content, 'base64').length 
           : 0;
 
-        // Skip attachments that are too large
         if (attachmentSize > MAX_SINGLE_ATTACHMENT) {
           console.warn(`⚠️ Skipping attachment ${attachment.filename}: too large (${(attachmentSize / 1024 / 1024).toFixed(2)}MB)`);
           continue;
         }
 
-        // Check if adding this would exceed total size
         if (totalSize + attachmentSize > MAX_TOTAL_SIZE) {
           console.warn(`⚠️ Skipping attachment ${attachment.filename}: would exceed total size limit`);
           continue;
@@ -84,19 +80,16 @@ const sendEmail = async ({ to, subject, html, text, attachments, replyTo }) => {
       subject,
     };
 
-    // Add reply-to if provided
     if (replyTo) {
       emailPayload.reply_to = replyTo;
     }
 
-    // Add content (prefer HTML over text)
     if (html) {
       emailPayload.html = html;
     } else if (text) {
       emailPayload.text = text;
     }
 
-    // Add processed attachments
     if (processedAttachments.length > 0) {
       emailPayload.attachments = processedAttachments;
     }
@@ -136,10 +129,11 @@ export const applyToJob = async (req, res) => {
       experience,
       education,
       coverLetter,
-      medicalFeePaid, 
-      medicalAmount, 
       notes
     } = req.body;
+
+    // ❌ REMOVED medicalFeePaid and medicalAmount from request body
+    // These will be set by the payment controller after successful payment
 
     // Validation
     if (!fullName || !email || !phone || !experience || !education) {
@@ -171,17 +165,10 @@ export const applyToJob = async (req, res) => {
       });
     }
 
-    // Check medical fee
-    const requiredAmount = 8000;
-    const amountNum = Number(medicalAmount || 0);
-    if (!medicalFeePaid || amountNum < requiredAmount) {
-      return res.status(400).json({ 
-        success: false,
-        message: `Mandatory medical test fee of Kshs. ${requiredAmount} is required.`
-      });
-    }
+    // ✅ REMOVED medical fee check - payment happens AFTER application submission
+    // The frontend will redirect to payment page after successful application
 
-    // Save applicant to database
+    // Save applicant to database WITHOUT payment confirmation
     applicant = await Applicant.create({
       job: job._id,
       fullName, 
@@ -192,12 +179,13 @@ export const applyToJob = async (req, res) => {
       experience,
       education,
       coverLetter,
-      medicalFeePaid: true, 
-      medicalAmount: amountNum, 
+      medicalFeePaid: false,  // ✅ Set to false initially
+      medicalAmount: 0,       // ✅ Set to 0 initially
       notes
     });
 
     console.log('✅ Applicant saved to database:', applicant._id);
+    console.log('⚠️ Payment pending - will be updated after M-PESA confirmation');
 
     // Prepare passport photo for PDF only
     let passportPhotoBuffer = null;
@@ -214,7 +202,7 @@ export const applyToJob = async (req, res) => {
     // Convert PDF to base64
     const pdfBase64 = pdfBuffer.toString('base64');
 
-    // STEP 1: Send Admin Email (WITHOUT large attachments, only PDF)
+    // STEP 1: Send Admin Email
     console.log('\n📧 STEP 1: Sending admin notification...');
     
     const adminHtmlTemplate = loadTemplate("adminApplicationTemplate.html", {
@@ -227,14 +215,15 @@ export const applyToJob = async (req, res) => {
       experience,
       education,
       coverLetter: coverLetter || 'Not provided',
-      medicalAmount: amountNum,
+      medicalAmount: '0 (Payment Pending)', // ✅ Updated
       notes: notes || 'None',
-      applicantId: applicant._id
+      applicantId: applicant._id,
+      paymentStatus: 'PENDING - Awaiting M-PESA confirmation' // ✅ Added
     });
 
     const adminEmailOptions = {
       to: process.env.ADMIN_EMAIL || 'admin@cotransglobal.com',
-      subject: `New Job Application: ${job.title} - ${fullName}`,
+      subject: `New Job Application: ${job.title} - ${fullName} [PAYMENT PENDING]`, // ✅ Updated subject
       replyTo: email,
       attachments: [{
         filename: `Application_${applicant.fullName.replace(/\s+/g, '_')}.pdf`,
@@ -265,23 +254,20 @@ ${education}
 Cover Letter:
 ${coverLetter || 'N/A'}
 
-Medical Fee: Kshs. ${amountNum}
-Notes: ${notes || 'None'}
-
+⚠️ Medical Fee: PAYMENT PENDING
 Applicant ID: ${applicant._id}
 
-Note: Resume and passport documents can be requested from the applicant directly.
+Note: Payment confirmation will follow after successful M-PESA transaction.
       `.trim();
     }
 
-    // Send admin email - THIS MUST SUCCEED
+    // Send admin email
     try {
       const adminResult = await sendEmail(adminEmailOptions);
       console.log('✅ Admin email sent successfully:', adminResult.id);
     } catch (adminError) {
       console.error('❌ CRITICAL: Failed to send admin email:', adminError.message);
       
-      // Try without PDF as last resort
       try {
         console.log('⚠️ Attempting admin email without PDF...');
         const fallbackOptions = { ...adminEmailOptions };
@@ -294,18 +280,20 @@ Note: Resume and passport documents can be requested from the applicant directly
       }
     }
 
-    // STEP 2: Send User Confirmation Email with PDF
+    // STEP 2: Send User Confirmation Email
     console.log('\n📧 STEP 2: Sending applicant confirmation...');
     
     const userHtmlTemplate = loadTemplate("userApplicationTemplate.html", {
       fullName,
       jobTitle: job.title,
-      name: fullName
+      name: fullName,
+      applicantId: applicant._id.toString(),
+      nextSteps: 'Please complete your payment of Kshs. 8,000 to finalize your application.' // ✅ Added
     });
 
     const userEmailOptions = {
       to: email,
-      subject: `Application Received: ${job.title} - Cotrans Global`,
+      subject: `Application Received: ${job.title} - Complete Payment`,
       attachments: [{
         filename: `Your_Application_${job.title.replace(/\s+/g, '_')}.pdf`,
         content: pdfBase64
@@ -320,29 +308,31 @@ Dear ${fullName},
 
 Thank you for applying for the ${job.title} position at Cotrans Global.
 
-We have successfully received your application and our team will review it shortly.
+⚠️ IMPORTANT: Please complete your medical fee payment of Kshs. 8,000 to finalize your application.
 
-If your qualifications match our requirements, we will contact you within 3-5 business days.
+Your Application ID: ${applicant._id}
 
 Next Steps:
-• Our team will review your application
-• Shortlisted candidates will be contacted for interviews
-• Successful candidates will undergo medical assessment (Kshs. 8,000)
-• Visa processing and job placement assistance will be provided
+1. Complete the M-PESA payment of Kshs. 8,000
+2. Our team will review your application after payment confirmation
+3. Shortlisted candidates will be contacted for interviews
+
+Payment Instructions:
+• Use the payment link provided
+• Enter your phone number for M-PESA STK push
+• Confirm the payment on your phone
 
 Best regards,
 Cotrans Global Recruitment Team
       `.trim();
     }
 
-    // Send user email - THIS MUST SUCCEED BEFORE PAYMENT EMAIL
     try {
       const userResult = await sendEmail(userEmailOptions);
       console.log('✅ Applicant confirmation email sent successfully:', userResult.id);
     } catch (userError) {
       console.error('❌ WARNING: Failed to send user email with PDF:', userError.message);
       
-      // Try without PDF
       try {
         console.log('⚠️ Attempting user email without PDF...');
         const fallbackUserOptions = { ...userEmailOptions };
@@ -355,55 +345,57 @@ Cotrans Global Recruitment Team
       }
     }
 
-    // STEP 3: Only schedule payment email if previous emails succeeded
-    console.log('\n📧 STEP 3: Scheduling payment details email...');
+    // STEP 3: Schedule payment reminder email
+    console.log('\n📧 STEP 3: Scheduling payment reminder email...');
     try {
       scheduleEmail({
         to: email,
-        subject: `Next Steps: Complete Your Application - ${job.title}`,
+        subject: `Action Required: Complete Payment - ${job.title}`,
         templateName: 'paymentDetailsTemplate.html',
         variables: {
           fullName: applicant.fullName,
           jobTitle: job.title,
           applicantId: applicant._id.toString(),
+          amount: '1', // Kshs. 8,000
+          urgency: 'Please complete within 24 hours'
         }
-      }, 10); // 10 minutes delay
-      console.log('✅ Payment details email scheduled for 10 minutes from now');
+      }, 1); // 10 minutes delay
+      console.log('✅ Payment reminder email scheduled');
     } catch (scheduleError) {
       console.warn('⚠️ Email scheduling not available:', scheduleError.message);
-      // Don't throw - this is not critical
     }
 
-    // SUCCESS RESPONSE
+    // SUCCESS RESPONSE - Return applicant ID for payment flow
     res.status(200).json({ 
       success: true,
-      message: 'Application submitted successfully! Check your email for confirmation.',
+      message: 'Application submitted successfully! Please proceed to payment.',
       applicant: {
         id: applicant._id,
         fullName: applicant.fullName,
-        email: applicant.email
+        email: applicant.email,
+        paymentRequired: true,  // ✅ Flag for frontend
+        paymentAmount: 1     // ✅ Amount to pay
       }
     });
 
   } catch (err) {
     console.error('❌ Application submission error:', err);
     
-    // If applicant was saved but emails failed, we should still return success
-    // but with a warning about email
     if (applicant) {
       return res.status(200).json({ 
         success: true,
-        message: 'Application submitted successfully, but email notification may have failed. We will contact you shortly.',
+        message: 'Application submitted successfully, but email notification may have failed. Please proceed to payment.',
         warning: 'Email notification pending',
         applicant: {
           id: applicant._id,
           fullName: applicant.fullName,
-          email: applicant.email
+          email: applicant.email,
+          paymentRequired: true,
+          paymentAmount: 1
         }
       });
     }
     
-    // If applicant wasn't saved, this is a real error
     let errorMessage = 'Failed to submit application. Please try again later.';
     
     if (err.message.includes('Failed to notify admin')) {
@@ -501,11 +493,9 @@ export const downloadApplicationPdf = async (req, res) => {
       });
     }
 
-    // Generate PDF
     console.log('Generating PDF for applicant:', applicant._id);
     const pdfBuffer = await generateApplicationPDF(applicant, applicant.job, null);
     
-    // Set response headers for PDF download
     const filename = `Application_${applicant.fullName.replace(/\s+/g, '_')}_${applicant.job.title.replace(/\s+/g, '_')}.pdf`;
     
     res.setHeader('Content-Type', 'application/pdf');

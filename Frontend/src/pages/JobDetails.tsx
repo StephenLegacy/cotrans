@@ -1,6 +1,6 @@
 import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
-import { MedicalNotice } from "@/components/home/MedicalNotice";
+// import { MedicalNotice } from "@/components/home/MedicalNotice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useJob } from "@/hooks/useJobs";
@@ -140,7 +140,7 @@ const JobDetails = () => {
         </div>
 
         {/* Medical notice */}
-        <MedicalNotice />
+        {/* <MedicalNotice /> */}
 
         {/* Job content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">

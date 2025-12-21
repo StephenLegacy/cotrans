@@ -10,6 +10,7 @@ import contactRoutes from './src/routes/contactRoutes.js';
 import resendWebhook from "./src/routes/resendWebhook.js";
 import healthRoutes from './src/routes/healthRoutes.js';
 import { startEmailQueueProcessor } from './src/services/emailQueueService.js';
+import paymentRoutes from './src/routes/paymentRoutes.js';
 // Monitoring routes (for admins)
 import emailQueueRoutes from './src/routes/emailQueueRoutes.js';
 
@@ -46,6 +47,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/applicants', applicantRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/admin', emailQueueRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -59,4 +61,3 @@ startEmailQueueProcessor();
 // Start server
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => console.log(`Senior Dev StephenLegacy, The Server is running on port ${PORT}`));
-

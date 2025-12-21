@@ -55,7 +55,7 @@
                 <tr>
                   <td style="padding-bottom: 20px;">
                     <p style="margin: 0 0 16px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
-                      Dear <strong style="color: #1e3a8a;">{{fullName}}</strong>,
+                      Dear <strong style="color: #1e3a8a;"><%= fullName %></strong>,
                     </p>
                     <p style="margin: 0; color: #475569; font-size: 15px; line-height: 1.7;">
                       Thank you for taking the first step towards an exciting career opportunity in the UAE with <strong>Cotrans Global Corporation</strong>. We're thrilled to support you on this journey!
@@ -69,10 +69,10 @@
                 <tr>
                   <td style="padding: 20px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border-left: 4px solid #d4af37;">
                     <p style="margin: 0 0 8px 0; color: #78350f; font-size: 14px; font-weight: 700;">
-                      📋 Application Status: Under Review
+                      Application Status: Under Review
                     </p>
                     <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.6;">
-                      Your application for <strong>{{jobTitle}}</strong> is currently being reviewed by our recruitment specialists. We carefully evaluate each candidate to ensure the best match.
+                      Your application for <strong><%= jobTitle %></strong> is currently being reviewed by our recruitment specialists. We carefully evaluate each candidate to ensure the best match.
                     </p>
                   </td>
                 </tr>
@@ -90,7 +90,7 @@
                 <tr>
                   <td>
                     <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 20px; font-weight: 700;">
-                      📍 Next Steps in Your Application
+                      Next Steps in Your Application
                     </h2>
                     <p style="margin: 0 0 20px 0; color: #475569; font-size: 14px; line-height: 1.6;">
                       To proceed with your application and secure your position, we require completion of the mandatory medical assessment. This is a standard requirement for all UAE employment visas.
@@ -104,7 +104,7 @@
                 <tr>
                   <td style="padding: 24px; background-color: #f8fafc; border-radius: 12px; border: 2px solid #e2e8f0;">
                     <h3 style="margin: 0 0 16px 0; color: #1e3a8a; font-size: 18px; font-weight: 700;">
-                      💳 Medical Assessment Fee
+                      Medical Assessment Fee
                     </h3>
                     
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -141,86 +141,64 @@
                 <tr>
                   <td>
                     <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">
-                      💰 How to Pay
+                      How to Pay
                     </h3>
                   </td>
                 </tr>
               </table>
               
-              <!-- M-PESA Option -->
+              <!-- M-PESA Payment Button -->
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
                 <tr>
-                  <td style="padding: 20px; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 10px; border-left: 3px solid #16a34a;">
-                    <p style="margin: 0 0 12px 0; color: #14532d; font-size: 16px; font-weight: 700;">
-                      <!-- 📱 Option 1: M-PESA (Recommended) --> M-PESA Payment (Other Methods Coming Soon)
+                  <td style="padding: 24px; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 10px; border-left: 3px solid #16a34a; text-align: center;">
+                    <p style="margin: 0 0 16px; color: #14532d; font-size: 18px; font-weight: 700;">
+                      Pay with M-PESA (Instant & Secure)
                     </p>
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                    <p style="margin: 0 0 20px; color: #15803d; font-size: 14px; line-height: 1.6;">
+                      Click the button below to pay securely using M-PESA STK Push. You'll receive a prompt on your phone to complete the payment.
+                    </p>
+                    
+                    <!-- Payment Button with Dynamic Link -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
                       <tr>
-                        <td style="padding: 8px 0;">
-                          <p style="margin: 0; color: #15803d; font-size: 13px; font-weight: 600;">Paybill Number:</p>
-                          <p style="margin: 4px 0 0 0; color: #14532d; font-size: 20px; font-weight: 700; letter-spacing: 2px;">
-                            985050
-                          </p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <p style="margin: 0; color: #15803d; font-size: 13px; font-weight: 600;">Account Number:</p>
-                          <p style="margin: 4px 0 0 0; color: #14532d; font-size: 16px; font-weight: 700;">
-                            <!-- {{applicantId}} -->
-                             0900663901
-                          </p>
-                          <p style="margin: 4px 0 0 0; color: #16a34a; font-size: 11px; font-style: italic;">
-                            <!-- (Your unique application reference) -->
-                          </p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <p style="margin: 0; color: #15803d; font-size: 13px; font-weight: 600;">Amount:</p>
-                          <p style="margin: 4px 0 0 0; color: #14532d; font-size: 16px; font-weight: 700;">
-                            Kshs. 8,000
-                          </p>
+                        <td align="center" style="border-radius: 8px; background: #16a34a;">
+                          <a href="http://localhost:8080/pay/<%= applicantId %>" style="display: inline-block; background: #16a34a; color: #ffffff !important; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                            Pay Kshs. 8,000 Now
+                          </a>
                         </td>
                       </tr>
                     </table>
+                    
+                    <p style="margin: 20px 0 0; color: #16a34a; font-size: 12px; line-height: 1.5;">
+                      Secured by Safaricom M-PESA | Your data is safe
+                    </p>
                   </td>
                 </tr>
               </table>
-              
-              <!-- Bank Transfer Option -->
-              <!-- <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+
+              <!-- Alternative Manual Payment -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 16px;">
                 <tr>
-                  <td style="padding: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 10px; border-left: 3px solid #3b82f6;">
-                    <p style="margin: 0 0 12px 0; color: #1e3a8a; font-size: 16px; font-weight: 700;">
-                      🏦 Option 2: Bank Transfer
+                  <td style="padding: 20px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 12px; color: #475569; font-size: 14px; text-align: center;">
+                      <strong>Or pay manually via M-PESA</strong>
                     </p>
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
-                        <td style="padding: 6px 0;">
-                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Bank Name:</p>
-                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">Equity Bank</p>
+                        <td style="padding: 6px 0; text-align: center; vertical-align: top;">
+                          <p style="margin: 0; color: #64748b; font-size: 12px;">Paybill:</p>
+                          <p style="margin: 2px 0 0; color: #1e293b; font-size: 16px; font-weight: 700;">985050</p>
+                        </td>
+                        <td style="padding: 6px 0; text-align: center; vertical-align: top;">
+                          <p style="margin: 0; color: #64748b; font-size: 12px;">Account:</p>
+                          <p style="margin: 2px 0 0; color: #1e293b; font-size: 16px; font-weight: 700;">0900663901</p>
+                        </td>
+                        <td style="padding: 6px 0; text-align: center; vertical-align: top;">
+                          <p style="margin: 0; color: #64748b; font-size: 12px;">Amount:</p>
+                          <p style="margin: 2px 0 0; color: #1e293b; font-size: 16px; font-weight: 700;">8,000</p>
                         </td>
                       </tr>
-                      <tr>
-                        <td style="padding: 6px 0;">
-                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Account Name:</p>
-                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">Cotrans Global Recruitment</p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 6px 0;">
-                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Account Number:</p>
-                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">0123456789</p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 6px 0;">
-                          <p style="margin: 0; color: #1e40af; font-size: 12px;">Reference:</p>
-                          <p style="margin: 2px 0 0 0; color: #1e3a8a; font-size: 14px; font-weight: 600;">{{applicantId}}</p>
-                        </td>
-                      </tr>
-                    </table> -->
+                    </table>
                   </td>
                 </tr>
               </table>
@@ -237,7 +215,7 @@
                 <tr>
                   <td style="padding: 20px; background-color: #eff6ff; border-radius: 10px; border-left: 3px solid #3b82f6;">
                     <p style="margin: 0 0 10px 0; color: #1e3a8a; font-size: 15px; font-weight: 700;">
-                      ✅ After Making Payment
+                      After Making Payment
                     </p>
                     <p style="margin: 0 0 8px 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
                       • Take a clear screenshot or photo of your payment confirmation
@@ -246,7 +224,7 @@
                       • Email it to: <a href="mailto:hello@cotransglobal.com" style="color: #3b82f6; text-decoration: none; font-weight: 600;">hello@cotransglobal.com</a>
                     </p>
                     <p style="margin: 0 0 8px 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
-                      • Include your Application ID: <strong>{{applicantId}}</strong>
+                      • Include your Application ID: <strong><%= applicantId %></strong>
                     </p>
                     <p style="margin: 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
                       • We'll confirm within 24 hours and schedule your medical assessment
@@ -267,7 +245,7 @@
                 <tr>
                   <td>
                     <h3 style="margin: 0 0 14px 0; color: #1e293b; font-size: 17px; font-weight: 700;">
-                      🏥 What Your Medical Fee Covers
+                      What Your Medical Fee Covers
                     </h3>
                   </td>
                 </tr>
@@ -318,18 +296,18 @@
                 <tr>
                   <td style="padding: 20px; background-color: #f8fafc; border-radius: 10px; text-align: center;">
                     <p style="margin: 0 0 12px 0; color: #1e293b; font-size: 15px; font-weight: 700;">
-                      💬 Need Assistance?
+                      Need Assistance?
                     </p>
                     <p style="margin: 0 0 12px 0; color: #64748b; font-size: 13px; line-height: 1.5;">
                       Our team is here to help you every step of the way
                     </p>
                     <p style="margin: 0 0 6px 0;">
-                      <span style="color: #3b82f6; font-size: 14px;">📧</span>
+                      <span style="color: #3b82f6; font-size: 14px;">✉</span>
                       <a href="mailto:hello@cotransglobal.com" style="color: #3b82f6; text-decoration: none; font-size: 14px; font-weight: 600;">hello@cotransglobal.com</a>
                     </p>
                     <p style="margin: 0 0 6px 0;">
-                      <!-- <span style="color: #3b82f6; font-size: 14px;">📞</span>
-                      <a href="tel:+254123456789" style="color: #3b82f6; text-decoration: none; font-size: 14px; font-weight: 600;">+254 123 456 789</a> -->
+                      <span style="color: #3b82f6; font-size: 14px;">☎</span>
+                      <a href="tel:+254700000000" style="color: #3b82f6; text-decoration: none; font-size: 14px; font-weight: 600;">+254 700 000 000</a>
                     </p>
                     <p style="margin: 0;">
                       <span style="color: #3b82f6; font-size: 14px;">⏰</span>

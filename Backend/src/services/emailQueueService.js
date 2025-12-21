@@ -14,6 +14,24 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const emailQueue = [];
 let isProcessing = false;
 
+// ============================================
+// EMAIL DELAY CONFIGURATION
+// ============================================
+// TESTING: Use 30 seconds (0.5 minutes) for immediate testing
+// PRODUCTION: Use 10 minutes for real deployment
+// 
+// To switch between testing and production:
+// - For testing: Set EMAIL_DELAY_MINUTES = 0.5 (30 seconds)
+// - For production: Set EMAIL_DELAY_MINUTES = 10 (10 minutes)
+// ============================================
+
+const EMAIL_DELAY_MINUTES = 0.5; // ← CHANGE THIS: 0.5 for testing (30 sec) | 10 for production
+
+// Alternative: Use environment variable for flexibility
+// const EMAIL_DELAY_MINUTES = parseFloat(process.env.EMAIL_DELAY_MINUTES) || 10;
+
+console.log(`📧 Email Queue Configuration: Delay set to ${EMAIL_DELAY_MINUTES} minutes`);
+
 // Load email template
 const loadTemplate = (filename, variables) => {
   try {
@@ -21,7 +39,10 @@ const loadTemplate = (filename, variables) => {
     let template = fs.readFileSync(filePath, 'utf8');
 
     for (const key in variables) {
-      template = template.replace(new RegExp(`{{${key}}}`, "g"), variables[key]);
+      const value = variables[key] || '';
+      template = template.replace(new RegExp(`{{${key}}}`, "g"), value);
+      // Also support <%= key %> syntax for EJS-style templates
+      template = template.replace(new RegExp(`<%=\\s*${key}\\s*%>`, "g"), value);
     }
     return template;
   } catch (err) {
@@ -33,13 +54,19 @@ const loadTemplate = (filename, variables) => {
 // Send email function
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
-    const response = await resend.emails.send({
-      from: process.env.FROM_EMAIL,
+    const emailPayload = {
+      from: process.env.FROM_EMAIL || 'Cotrans Global <onboarding@resend.dev>',
       to,
       subject,
-      html,
-      text,
-    });
+    };
+
+    if (html) {
+      emailPayload.html = html;
+    } else if (text) {
+      emailPayload.text = text;
+    }
+
+    const response = await resend.emails.send(emailPayload);
 
     if (response.error) {
       throw new Error(response.error.message);
@@ -52,9 +79,20 @@ const sendEmail = async ({ to, subject, html, text }) => {
   }
 };
 
-// Add email to queue
-export const scheduleEmail = (emailData, delayMinutes = 10) => {
-  const scheduledTime = new Date(Date.now() + delayMinutes * 60 * 1000);
+// ============================================
+// SCHEDULE EMAIL WITH CONFIGURABLE DELAY
+// ============================================
+/**
+ * Add email to queue with delay
+ * @param {Object} emailData - Email data (to, subject, templateName, variables)
+ * @param {number} delayMinutes - Override delay in minutes (optional, defaults to EMAIL_DELAY_MINUTES)
+ * @returns {string} Queue ID
+ */
+export const scheduleEmail = (emailData, delayMinutes = null) => {
+  // Use custom delay if provided, otherwise use configured default
+  const delay = delayMinutes !== null ? delayMinutes : EMAIL_DELAY_MINUTES;
+  
+  const scheduledTime = new Date(Date.now() + delay * 60 * 1000);
   
   const queueItem = {
     id: `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -68,15 +106,19 @@ export const scheduleEmail = (emailData, delayMinutes = 10) => {
 
   emailQueue.push(queueItem);
   
-  console.log(`📧 Email scheduled for ${scheduledTime.toLocaleString()}`);
+  console.log(`\n📧 Email scheduled successfully`);
+  console.log(`   Queue ID: ${queueItem.id}`);
   console.log(`   To: ${emailData.to}`);
   console.log(`   Subject: ${emailData.subject}`);
-  console.log(`   Queue ID: ${queueItem.id}`);
+  console.log(`   Delay: ${delay} minute(s) (${delay * 60} seconds)`);
+  console.log(`   Scheduled for: ${scheduledTime.toLocaleString()}`);
   
   return queueItem.id;
 };
 
-// Process email queue
+// ============================================
+// PROCESS EMAIL QUEUE
+// ============================================
 const processQueue = async () => {
   if (isProcessing || emailQueue.length === 0) {
     return;
@@ -90,9 +132,15 @@ const processQueue = async () => {
     item => item.status === 'pending' && item.scheduledTime <= now
   );
 
+  if (readyEmails.length > 0) {
+    console.log(`\n📬 Processing ${readyEmails.length} ready email(s)...`);
+  }
+
   for (const emailItem of readyEmails) {
     try {
-      console.log(`📤 Sending scheduled email: ${emailItem.id}`);
+      console.log(`\n📤 Sending scheduled email: ${emailItem.id}`);
+      console.log(`   To: ${emailItem.to}`);
+      console.log(`   Subject: ${emailItem.subject}`);
       
       // Load template if templateName is provided
       let html = emailItem.html;
@@ -101,7 +149,7 @@ const processQueue = async () => {
       }
 
       // Send email
-      await sendEmail({
+      const response = await sendEmail({
         to: emailItem.to,
         subject: emailItem.subject,
         html: html || emailItem.text,
@@ -113,6 +161,7 @@ const processQueue = async () => {
       emailItem.sentAt = new Date();
       
       console.log(`✅ Email sent successfully: ${emailItem.id}`);
+      console.log(`   Response ID: ${response.id}`);
       
       // Remove from queue after successful send
       const index = emailQueue.indexOf(emailItem);
@@ -121,14 +170,15 @@ const processQueue = async () => {
       }
       
     } catch (error) {
-      console.error(`❌ Failed to send email ${emailItem.id}:`, error.message);
+      console.error(`\n❌ Failed to send email ${emailItem.id}:`, error.message);
       
       emailItem.attempts += 1;
       emailItem.lastError = error.message;
 
       if (emailItem.attempts >= emailItem.maxAttempts) {
         emailItem.status = 'failed';
-        console.error(`❌ Email ${emailItem.id} failed after ${emailItem.maxAttempts} attempts`);
+        console.error(`❌ Email ${emailItem.id} failed permanently after ${emailItem.maxAttempts} attempts`);
+        console.error(`   Final error: ${error.message}`);
         
         // Remove from queue after max attempts
         const index = emailQueue.indexOf(emailItem);
@@ -138,7 +188,8 @@ const processQueue = async () => {
       } else {
         // Retry in 2 minutes
         emailItem.scheduledTime = new Date(Date.now() + 2 * 60 * 1000);
-        console.log(`🔄 Retrying email ${emailItem.id} in 2 minutes (attempt ${emailItem.attempts}/${emailItem.maxAttempts})`);
+        console.log(`🔄 Retrying email ${emailItem.id} in 2 minutes`);
+        console.log(`   Attempt ${emailItem.attempts}/${emailItem.maxAttempts}`);
       }
     }
   }
@@ -146,25 +197,36 @@ const processQueue = async () => {
   isProcessing = false;
 };
 
-// Start cron job to process queue every minute
+// ============================================
+// START EMAIL QUEUE PROCESSOR
+// ============================================
 export const startEmailQueueProcessor = () => {
-  console.log('🚀 Starting email queue processor...');
+  console.log('\n🚀 Starting email queue processor...');
+  console.log(`   Default delay: ${EMAIL_DELAY_MINUTES} minute(s)`);
+  console.log(`   Processing interval: Every 1 minute`);
+  console.log(`   Max retry attempts: 3`);
   
   // Process queue every minute
   cron.schedule('* * * * *', () => {
+    const pendingCount = emailQueue.filter(e => e.status === 'pending').length;
+    if (pendingCount > 0) {
+      console.log(`\n⏰ Cron tick - Checking queue (${pendingCount} pending email(s))`);
+    }
     processQueue();
   });
 
-  console.log('✅ Email queue processor started');
-  console.log('   Processing interval: Every 1 minute');
+  console.log('✅ Email queue processor started successfully\n');
 };
 
-// Get queue stats (for monitoring)
+// ============================================
+// GET QUEUE STATS (FOR MONITORING)
+// ============================================
 export const getQueueStats = () => {
   const stats = {
     total: emailQueue.length,
     pending: emailQueue.filter(e => e.status === 'pending').length,
     failed: emailQueue.filter(e => e.status === 'failed').length,
+    configuredDelay: EMAIL_DELAY_MINUTES,
     emails: emailQueue.map(e => ({
       id: e.id,
       to: e.to,
@@ -172,18 +234,45 @@ export const getQueueStats = () => {
       status: e.status,
       scheduledTime: e.scheduledTime,
       attempts: e.attempts,
+      createdAt: e.createdAt,
+      sentAt: e.sentAt || null,
+      lastError: e.lastError || null,
     })),
   };
   return stats;
 };
 
-// Cancel scheduled email
+// ============================================
+// CANCEL SCHEDULED EMAIL
+// ============================================
 export const cancelScheduledEmail = (emailId) => {
   const index = emailQueue.findIndex(e => e.id === emailId);
   if (index > -1) {
+    const email = emailQueue[index];
     emailQueue.splice(index, 1);
-    console.log(`🗑️  Cancelled email: ${emailId}`);
+    console.log(`\n🗑️  Cancelled email: ${emailId}`);
+    console.log(`   To: ${email.to}`);
+    console.log(`   Subject: ${email.subject}`);
     return true;
   }
+  console.log(`⚠️  Email not found: ${emailId}`);
   return false;
+};
+
+// ============================================
+// MANUAL QUEUE PROCESSING (FOR TESTING)
+// ============================================
+export const processQueueNow = async () => {
+  console.log('\n🔧 Manual queue processing triggered...');
+  await processQueue();
+};
+
+// ============================================
+// CLEAR ALL PENDING EMAILS (FOR TESTING)
+// ============================================
+export const clearQueue = () => {
+  const clearedCount = emailQueue.length;
+  emailQueue.length = 0;
+  console.log(`\n🧹 Cleared ${clearedCount} email(s) from queue`);
+  return clearedCount;
 };
